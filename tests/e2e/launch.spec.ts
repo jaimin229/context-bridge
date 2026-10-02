@@ -1,28 +1,15 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 import { _electron as electron } from 'playwright';
-import { mkdirSync, existsSync } from 'node:fs';
+import { existsSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
-import { createRequire } from 'node:module';
+import { DESKTOP_DIR, assertStartupChecks, electronPath, freshEnv } from './helpers';
 
-const ROOT = process.cwd();
-const DESKTOP_DIR = path.join(ROOT, 'apps', 'desktop');
-const EVIDENCE_DIR = path.join(ROOT, 'evidence', 'S0');
-const requireFromRoot = createRequire(path.join(ROOT, 'package.json'));
-const electronPath = requireFromRoot('electron') as unknown as string;
-
-async function assertStartupChecks(page: import('playwright').Page): Promise<void> {
-  await expect(page.locator('h1')).toHaveText('ContextBridge');
-  await expect(page.locator('[data-check="ipc"][data-status="ok"]')).toBeVisible();
-  await expect(page.locator('[data-check="sqlite"][data-status="ok"]')).toBeVisible();
-  await expect(page.locator('[data-check="fts5"][data-status="ok"]')).toBeVisible();
-  await expect(page.locator('[data-check="security"][data-status="ok"]')).toBeVisible();
-  await expect(page.getByTestId('overall-status')).toContainText('All startup checks passed');
-}
+const EVIDENCE_DIR = path.join(process.cwd(), 'evidence', 'S0');
 
 test.describe('S0 Electron launch proof', () => {
   test('development mode: loads from Vite dev server with all checks passing', async () => {
     mkdirSync(EVIDENCE_DIR, { recursive: true });
-    const env = { ...process.env, CONTEXTBRIDGE_DEV_SERVER: 'http://localhost:5173' };
+    const env = freshEnv({ devServer: 'http://localhost:5173' });
     const app = await electron.launch({
       executablePath: electronPath,
       args: [DESKTOP_DIR],
@@ -39,8 +26,7 @@ test.describe('S0 Electron launch proof', () => {
 
   test('production content loading: loads file:// renderer with all checks passing', async () => {
     mkdirSync(EVIDENCE_DIR, { recursive: true });
-    const env: Record<string, string> = { ...process.env } as Record<string, string>;
-    delete env.CONTEXTBRIDGE_DEV_SERVER;
+    const env = freshEnv();
     const app = await electron.launch({
       executablePath: electronPath,
       args: [DESKTOP_DIR],
@@ -64,8 +50,7 @@ test.describe('S0 Electron launch proof', () => {
     );
     test.skip(!existsSync(packagedExe), 'packaged build not present (run npm run package:dir)');
     mkdirSync(EVIDENCE_DIR, { recursive: true });
-    const env: Record<string, string> = { ...process.env } as Record<string, string>;
-    delete env.CONTEXTBRIDGE_DEV_SERVER;
+    const env = freshEnv();
     const app = await electron.launch({
       executablePath: packagedExe,
       args: [],

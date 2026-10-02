@@ -1,8 +1,17 @@
-import { app, BrowserWindow, ipcMain, session } from 'electron';
+import { app, BrowserWindow, clipboard, dialog, ipcMain, session } from 'electron';
 import { join } from 'node:path';
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import type { Database } from 'better-sqlite3';
+import { openDatabase, runMigrations } from '@contextbridge/core';
 import { DEV_CSP, DEV_SERVER_ORIGIN, PROD_CSP } from './csp';
-import { IPC_CHANNELS, handlePing, type PingDeps } from './ipc';
+import {
+  IPC_CHANNELS,
+  IPC_CHANNEL_NAMES,
+  handlePing,
+  routeIpc,
+  type IpcDeps,
+  type PingDeps,
+} from './ipc';
 import { runSqliteProbe, type ProbeResult } from './smoke';
 
 app.setName('ContextBridge');
@@ -83,6 +92,52 @@ function getPingDeps(): PingDeps {
   };
 }
 
+function resolveDataDir(): string {
+  const override = process.env.CONTEXTBRIDGE_DATA_DIR;
+  if (override && override.trim().length > 0) {
+    return override.trim();
+  }
+  return app.getPath('userData');
+}
+
+let appDb: Database | null = null;
+
+function openAppDatabase(): Database {
+  const dataDir = resolveDataDir();
+  mkdirSync(dataDir, { recursive: true });
+  const databasePath = join(dataDir, 'contextbridge.db');
+  const db = openDatabase({ databasePath });
+  const migrationsDir = join(__dirname, 'migrations');
+  runMigrations(db, migrationsDir, databasePath);
+  return db;
+}
+
+function getIpcDeps(): IpcDeps {
+  return {
+    db: appDb as Database,
+    ping: (payload) => handlePing(payload, getPingDeps()),
+    copyText: (text) => clipboard.writeText(text),
+  };
+}
+
+function registerIpcHandlers(): void {
+  for (const channel of IPC_CHANNEL_NAMES) {
+    ipcMain.handle(channel, (event, payload: unknown) => {
+      const senderUrl = event.senderFrame?.url ?? '';
+      if (!senderIsTrusted(senderUrl)) {
+        return {
+          ok: false,
+          error: { code: 'FORBIDDEN_SENDER', message: 'Untrusted sender.' },
+        };
+      }
+      if (channel === IPC_CHANNELS.ping) {
+        return handlePing(payload, getPingDeps());
+      }
+      return routeIpc(getIpcDeps(), channel, payload);
+    });
+  }
+}
+
 function applySecurityPolicies(): void {
   const csp = devServerUrl ? DEV_CSP : PROD_CSP;
 
@@ -105,17 +160,6 @@ function applySecurityPolicies(): void {
     callback(false);
   });
   session.defaultSession.setPermissionCheckHandler(() => false);
-
-  ipcMain.handle(IPC_CHANNELS.ping, (event, payload: unknown) => {
-    const senderUrl = event.senderFrame?.url ?? '';
-    if (!senderIsTrusted(senderUrl)) {
-      return {
-        ok: false,
-        error: { code: 'FORBIDDEN_SENDER', message: 'Untrusted sender.' },
-      };
-    }
-    return handlePing(payload, getPingDeps());
-  });
 }
 
 function hardenWebContents(webContents: Electron.WebContents): void {
@@ -167,7 +211,19 @@ function startApp(): void {
   });
 
   void app.whenReady().then(() => {
+    try {
+      appDb = openAppDatabase();
+    } catch (err) {
+      dialog.showErrorBox(
+        'ContextBridge — database error',
+        err instanceof Error ? err.message : String(err),
+      );
+      app.exit(1);
+      return;
+    }
+
     applySecurityPolicies();
+    registerIpcHandlers();
     createWindow();
 
     app.on('activate', () => {
@@ -175,6 +231,17 @@ function startApp(): void {
         createWindow();
       }
     });
+  });
+
+  app.on('will-quit', () => {
+    if (appDb) {
+      try {
+        appDb.close();
+      } catch {
+        // already closed
+      }
+      appDb = null;
+    }
   });
 
   app.on('window-all-closed', () => {

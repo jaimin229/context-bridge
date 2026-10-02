@@ -1,0 +1,15 @@
+
+> contextbridge@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.3 C:/Users/jaimi/OneDrive/Desktop/context bridge
+
+warning: in the working copy of 'app.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app.ts', LF will be replaced by CRLF the next time Git touches it
+
+ Test Files  16 passed (16)
+      Tests  169 passed (169)
+   Start at  09:51:37
+   Duration  4.41s (tests 57%, import 27%, transform 15%, worker 1%)
+

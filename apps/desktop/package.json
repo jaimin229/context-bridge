@@ -6,12 +6,13 @@
   "main": "dist-electron/main.js",
   "scripts": {
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.electron.json --noEmit",
-    "build:electron": "tsc -p tsconfig.electron.json",
+    "build:electron": "tsc -p tsconfig.electron.json && node ../../scripts/copy-migrations.mjs",
     "build:renderer": "vite build",
     "build": "npm run build:electron && npm run build:renderer",
     "package:dir": "electron-builder --dir"
   },
   "dependencies": {
+    "@contextbridge/core": "0.1.0",
     "better-sqlite3": "13.0.3",
     "lucide-react": "1.49.0",
     "react": "19.3.0",

@@ -11,10 +11,12 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "pretypecheck": "npm run build --workspace @contextbridge/core",
     "typecheck": "tsc -p tsconfig.json && npm run typecheck --workspaces --if-present",
     "test": "vitest run",
     "test:e2e": "npm run build && playwright test",
     "dev": "node scripts/dev.mjs",
+    "prebuild": "npm run build --workspace @contextbridge/core",
     "build": "npm run build --workspace @contextbridge/desktop",
     "package:dir": "npm run build && npm run package:dir --workspace @contextbridge/desktop",
     "smoke:packaged": "node scripts/smoke-packaged.mjs"

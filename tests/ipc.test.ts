@@ -85,12 +85,26 @@ describe('preload allowlist', () => {
     expect(preloadSource).toContain(IPC_CHANNELS.ping);
   });
 
-  it('has exactly one ipcRenderer.invoke call (no generic passthrough)', () => {
+  it('invokes every registered channel with a literal allowlisted string', () => {
     const code = preloadSource
       .replace(/\/\*[\s\S]*?\*\//g, '')
       .replace(/^\s*\/\/.*$/gm, '');
-    const matches = code.match(/ipcRenderer\.invoke/g) ?? [];
-    expect(matches).toHaveLength(1);
+    const literals = [...code.matchAll(/ipcRenderer\.invoke\(\s*'([^']+)'/g)].map((m) => m[1]);
+    expect(literals.length).toBeGreaterThan(0);
+    const allowlist = new Set<string>(Object.values(IPC_CHANNELS));
+    for (const literal of literals) {
+      expect(allowlist.has(literal)).toBe(true);
+    }
+    expect(new Set(literals).size).toBe(literals.length);
+    expect(new Set(literals)).toEqual(allowlist);
+  });
+
+  it('never passes a dynamic channel to invoke (no generic passthrough)', () => {
+    const code = preloadSource
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/^\s*\/\/.*$/gm, '');
+    const dynamic = [...code.matchAll(/ipcRenderer\.invoke\(([^'])/g)];
+    expect(dynamic).toHaveLength(0);
     expect(code).not.toMatch(/invoke\s*\(\s*channel/);
     expect(code).not.toMatch(/invoke:\s*/);
   });

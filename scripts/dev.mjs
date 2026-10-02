@@ -42,8 +42,20 @@ async function waitForServer(url, attempts = 150) {
   return false;
 }
 
+console.log('[dev] building core (tsc)…');
+await spawnAndWait(
+  process.execPath,
+  [tscBin, '-p', path.join(rootDir, 'packages', 'core', 'tsconfig.build.json')],
+  { cwd: rootDir },
+);
+
 console.log('[dev] building main process + preload (tsc)…');
 await spawnAndWait(process.execPath, [tscBin, '-p', path.join(desktopDir, 'tsconfig.electron.json')], {
+  cwd: rootDir,
+});
+
+console.log('[dev] copying migrations…');
+await spawnAndWait(process.execPath, [path.join(rootDir, 'scripts', 'copy-migrations.mjs')], {
   cwd: rootDir,
 });
 

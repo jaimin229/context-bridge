@@ -1,0 +1,20 @@
+
+> contextbridge@0.1.0 pretypecheck
+> npm run build --workspace @contextbridge/core
+
+
+> @contextbridge/core@0.1.0 build
+> tsc -p tsconfig.build.json
+
+
+> contextbridge@0.1.0 typecheck
+> tsc -p tsconfig.json && npm run typecheck --workspaces --if-present
+
+
+> @contextbridge/core@0.1.0 typecheck
+> tsc -p tsconfig.json
+
+
+> @contextbridge/desktop@0.1.0 typecheck
+> tsc -p tsconfig.json && tsc -p tsconfig.electron.json --noEmit
+

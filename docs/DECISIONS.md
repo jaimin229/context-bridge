@@ -120,3 +120,43 @@ so the renderer never needs `dangerouslySetInnerHTML`.
 position, and a masked prefix (`abcd…`). Rules are a fixed offline set of
 high-confidence formats; the scanner makes no network calls and never logs or
 stores raw matches. Tests use constructed, obviously fake strings.
+
+## D15 - 2026-10-02: Core ships as a built CJS dist; the renderer never loads core
+
+`@contextbridge/core` compiles to CommonJS in `packages/core/dist` (declaration
+files included) and that build runs before `typecheck`, `build`, and `dev`.
+The Electron main process imports core by package name at runtime. The
+renderer may import *types* only: core's value graph pulls in
+`better-sqlite3`, which must never be bundled into the browser context.
+Small mirrored constants (snippet markers, capsule type/status lists) are
+duplicated in renderer components and locked to core by
+`tests/ipc-contract.test.ts`, so drift fails the gate.
+
+## D16 - 2026-10-02: Migrations are copied next to the compiled main process
+
+Every electron build copies `packages/core/migrations/*.sql` into
+`apps/desktop/dist-electron/migrations`, and the main process resolves them
+via `__dirname`. This works identically for `dist-electron` in dev, the
+Playwright run, and inside the packaged asar - no path depends on the
+repository layout at runtime. Missing or unresolvable migrations fail loudly
+at startup (error dialog + exit) instead of running against an empty schema.
+
+## D17 - 2026-10-02: CONTEXTBRIDGE_DATA_DIR isolates the local database
+
+The database lives in Electron `userData` by default. The
+`CONTEXTBRIDGE_DATA_DIR` environment variable overrides the directory for
+per-run isolation; tests create a fresh temporary directory per launch so
+every e2e run starts on the onboarding screen with a brand-new database.
+Production behavior is unchanged when the variable is unset. A startup
+failure to open or migrate the database shows a native error dialog and
+exits non-zero - it never opens a window against a broken store.
+
+## D18 - 2026-10-02: One Zod-validated channel registry, no generic invoke
+
+Every renderer operation is a fixed channel in `electron/ipc.ts` with its own
+payload schema; `routeIpc` handles lookup, validation, domain-error mapping,
+and containment of unexpected exceptions. The sandboxed preload exposes only
+named methods (no `invoke(channel, ...)` passthrough) and
+`tests/ipc.test.ts` asserts that the set of literal channels in the preload
+exactly equals the registry - adding a channel without exposing it (or vice
+versa) fails the test.
