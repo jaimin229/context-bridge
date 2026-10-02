@@ -1,0 +1,35 @@
+{
+  "name": "@contextbridge/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ContextBridge Electron desktop shell",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.electron.json --noEmit",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "build:renderer": "vite build",
+    "build": "npm run build:electron && npm run build:renderer",
+    "package:dir": "electron-builder --dir"
+  },
+  "dependencies": {
+    "better-sqlite3": "13.0.3",
+    "lucide-react": "1.49.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.3.3",
+    "@types/better-sqlite3": "9.6.0",
+    "@types/node": "26.6.4",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "@playwright/test": "1.63.0",
+    "electron": "44.5.1",
+    "electron-builder": "26.15.3",
+    "playwright": "1.63.0",
+    "tailwindcss": "4.3.3",
+    "vite": "8.3.2"
+  }
+}

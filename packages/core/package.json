@@ -1,0 +1,19 @@
+{
+  "name": "@contextbridge/core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pure TypeScript domain logic for ContextBridge (no Electron imports)",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "better-sqlite3": "13.0.3",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "9.6.0",
+    "@types/node": "26.6.4"
+  }
+}

@@ -1,0 +1,15 @@
+appId: com.contextbridge.desktop
+productName: ContextBridge
+directories:
+  output: release
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - package.json
+asar: true
+asarUnpack:
+  - '**/node_modules/better-sqlite3/**'
+npmRebuild: false
+win:
+  target:
+    - dir
