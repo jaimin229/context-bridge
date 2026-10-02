@@ -67,3 +67,30 @@ used for dev-mode and built-renderer launch proof.
   must live outside the asar archive to be loadable.
 - Target is `--dir` (unpacked Windows build) per the S0 gate; installer
   targets are out of MVP scope.
+
+## D9 — 2026-10-02: Markdown front matter carries the Git snapshot
+
+The Markdown export front matter (`contextbridge`, `id`, `title`, `type`,
+`status`, `tags`, `project`, `created`, `updated`, `git_head`, `git_branch`)
+also carries `git_snapshot` as a single-line JSON string. Without it a
+Markdown round trip loses the working-tree state and capture timestamp, so the
+regenerated `content_markdown` differs from the original. With it, JSON and
+Markdown imports both restore identical structured fields and identical derived
+handoff content. A corrupt `git_snapshot` value is imported as `null` rather
+than failing the whole file.
+
+## D10 — 2026-10-02: Initial revision does not bump capsule version
+
+The first revision (reason `create` or `import`) is recorded at the capsule's
+current version (1) without changing `version` or `updated_at`. Only later
+revisions bump `version` and stamp `updated_at`. This keeps `version = 1` and
+`updated_at = createdAt` for freshly created and freshly imported capsules,
+which is required for lossless export round trips. Identical snapshots are
+still skipped at every stage.
+
+## D11 — 2026-10-02: Malformed migration file names throw
+
+Every `.sql` file in the migrations directory must start with a number.
+Unnumbered names (e.g. `init.sql`) raise an error instead of being filtered
+out silently — a silently skipped migration is a data-integrity hazard. Files
+with other extensions are ignored (backups, notes).

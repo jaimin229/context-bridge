@@ -1,0 +1,17 @@
+
+> contextbridge@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.3 C:/Users/jaimi/OneDrive/Desktop/context bridge
+
+
+ Test Files  11 passed (11)
+      Tests  95 passed (95)
+   Start at  08:58:32
+   Duration  1.56s (import 42%, tests 30%, transform 27%, worker 1%)
+
+  Transform  transforming modules took 2.31s ┬╖ 27% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+
