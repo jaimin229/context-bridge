@@ -79,19 +79,11 @@ export {
   setCapsuleTags,
 } from './repo/tags';
 
-export {
-  addRevision,
-  capsuleSnapshot,
-  getRevision,
-  listRevisions,
-} from './repo/revisions';
+export { addRevision, capsuleSnapshot, getRevision, listRevisions } from './repo/revisions';
 
 export { getSetting, listSettings, setSetting } from './repo/settings';
 
-export {
-  DEFAULT_TOKEN_BUDGET,
-  estimateTokens,
-} from './handoff/tokens';
+export { DEFAULT_TOKEN_BUDGET, estimateTokens } from './handoff/tokens';
 
 export {
   generateHandoff,
@@ -125,16 +117,9 @@ export {
 
 export { newId, nowIso, slugify } from './util';
 
-export {
-  captureGitSnapshot,
-  parsePorcelainStatus,
-} from './git/capture';
+export { captureGitSnapshot, parsePorcelainStatus } from './git/capture';
 
-export {
-  detectDrift,
-  type DriftReason,
-  type DriftReport,
-} from './git/drift';
+export { detectDrift, type DriftReason, type DriftReport } from './git/drift';
 
 export {
   SNIPPET_CLOSE,

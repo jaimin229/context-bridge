@@ -77,12 +77,7 @@ describe('revision policy', () => {
     const { capsuleId } = setup(c);
     const before = listRevisions(c.db, capsuleId);
 
-    const noOpUpdate = updateCapsule(
-      c.db,
-      capsuleId,
-      {},
-      { reason: 'manual-save' },
-    );
+    const noOpUpdate = updateCapsule(c.db, capsuleId, {}, { reason: 'manual-save' });
     expect(noOpUpdate.ok).toBe(true);
     const after = listRevisions(c.db, capsuleId);
     expect(after).toHaveLength(before.length);
@@ -109,12 +104,7 @@ describe('revision policy', () => {
   it('does not create a revision when reason is explicitly null', () => {
     const c = ctx();
     const { capsuleId } = setup(c);
-    const updated = updateCapsule(
-      c.db,
-      capsuleId,
-      { notes: 'silent change' },
-      { reason: null },
-    );
+    const updated = updateCapsule(c.db, capsuleId, { notes: 'silent change' }, { reason: null });
     expect(updated.ok).toBe(true);
     expect(listRevisions(c.db, capsuleId)).toHaveLength(1);
   });

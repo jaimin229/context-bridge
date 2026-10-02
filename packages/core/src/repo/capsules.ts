@@ -5,10 +5,7 @@ import {
   capsulePatchSchema,
   formatZodIssues,
 } from '../schemas';
-import {
-  generateHandoff,
-  type MasterContextInfo,
-} from '../handoff/generator';
+import { generateHandoff, type MasterContextInfo } from '../handoff/generator';
 import { estimateTokens } from '../handoff/tokens';
 import {
   err,
@@ -44,10 +41,7 @@ export interface CreateCapsuleOptions {
   updatedAt?: string;
 }
 
-export function loadMasterContext(
-  db: Database,
-  projectId: string,
-): MasterContextInfo | null {
+export function loadMasterContext(db: Database, projectId: string): MasterContextInfo | null {
   const row = db
     .prepare(
       `SELECT id, goal, architecture_notes, rules_constraints
@@ -57,7 +51,12 @@ export function loadMasterContext(
        LIMIT 1`,
     )
     .get(projectId) as
-    | { id: string; goal: string; architecture_notes: string; rules_constraints: string }
+    | {
+        id: string;
+        goal: string;
+        architecture_notes: string;
+        rules_constraints: string;
+      }
     | undefined;
   if (!row) {
     return null;
@@ -307,17 +306,9 @@ export function updateCapsule(
   tx();
 
   const wantsRevision =
-    options.reason === null
-      ? false
-      : options.reason !== undefined
-        ? true
-        : statusChanged;
+    options.reason === null ? false : options.reason !== undefined ? true : statusChanged;
   if (wantsRevision) {
-    const revision = addRevision(
-      db,
-      id,
-      options.reason ?? 'status-change',
-    );
+    const revision = addRevision(db, id, options.reason ?? 'status-change');
     if (!revision.ok) {
       return revision;
     }
@@ -512,11 +503,7 @@ export function softDeleteCapsule(db: Database, id: string): AppResult<Capsule> 
   }
   const now = nowIso();
   const tx = db.transaction(() => {
-    db.prepare('UPDATE capsules SET deleted_at = ?, updated_at = ? WHERE id = ?').run(
-      now,
-      now,
-      id,
-    );
+    db.prepare('UPDATE capsules SET deleted_at = ?, updated_at = ? WHERE id = ?').run(now, now, id);
     db.prepare(
       'UPDATE projects SET active_capsule_id = NULL, updated_at = ? WHERE active_capsule_id = ?',
     ).run(now, id);
@@ -587,9 +574,11 @@ export function setActiveHandoff(db: Database, capsuleId: string): AppResult<Pro
   if (!project.ok) {
     return project;
   }
-  db.prepare(
-    'UPDATE projects SET active_capsule_id = ?, updated_at = ? WHERE id = ?',
-  ).run(capsuleId, nowIso(), project.value.id);
+  db.prepare('UPDATE projects SET active_capsule_id = ?, updated_at = ? WHERE id = ?').run(
+    capsuleId,
+    nowIso(),
+    project.value.id,
+  );
   return getProject(db, project.value.id);
 }
 

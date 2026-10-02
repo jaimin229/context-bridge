@@ -28,7 +28,10 @@ afterEach(() => {
 });
 
 function setupProject(c: TestContext, name = 'Test Project'): string {
-  const p = createProject(c.db, { name, repositoryPath: 'C:\\dev\\test-project' });
+  const p = createProject(c.db, {
+    name,
+    repositoryPath: 'C:\\dev\\test-project',
+  });
   if (!p.ok) throw new Error('project setup failed');
   return p.value.id;
 }
@@ -90,7 +93,10 @@ describe('capsule CRUD', () => {
   it('normalizes tags on create', () => {
     const c = ctx();
     const projectId = setupProject(c);
-    const result = createCapsule(c.db, projectId, { title: 'Tagged', tags: ['Search', 'search'] });
+    const result = createCapsule(c.db, projectId, {
+      title: 'Tagged',
+      tags: ['Search', 'search'],
+    });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.title).toBe('Tagged');
@@ -99,7 +105,10 @@ describe('capsule CRUD', () => {
   it('rejects invalid capsule type with a field-level error', () => {
     const c = ctx();
     const projectId = setupProject(c);
-    const result = createCapsule(c.db, projectId, { title: 'x', type: 'NotAType' });
+    const result = createCapsule(c.db, projectId, {
+      title: 'x',
+      type: 'NotAType',
+    });
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.code).toBe('VALIDATION');
@@ -119,11 +128,16 @@ describe('capsule CRUD', () => {
   it('updates fields and regenerates content_markdown', () => {
     const c = ctx();
     const projectId = setupProject(c);
-    const created = createCapsule(c.db, projectId, { title: 'Updatable', currentTask: 'first' });
+    const created = createCapsule(c.db, projectId, {
+      title: 'Updatable',
+      currentTask: 'first',
+    });
     if (!created.ok) throw new Error('setup failed');
     const before = created.value.contentMarkdown;
 
-    const updated = updateCapsule(c.db, created.value.id, { currentTask: 'second task' });
+    const updated = updateCapsule(c.db, created.value.id, {
+      currentTask: 'second task',
+    });
     expect(updated.ok).toBe(true);
     if (!updated.ok) return;
     expect(updated.value.currentTask).toBe('second task');
@@ -161,7 +175,10 @@ describe('soft delete, restore, archive', () => {
     const listed = listCapsules(c.db, { projectId });
     expect(listed.ok && listed.value).toHaveLength(0);
 
-    const listedDeleted = listCapsules(c.db, { projectId, includeDeleted: true });
+    const listedDeleted = listCapsules(c.db, {
+      projectId,
+      includeDeleted: true,
+    });
     expect(listedDeleted.ok && listedDeleted.value).toHaveLength(1);
 
     const restored = restoreCapsule(c.db, id);
@@ -194,14 +211,15 @@ describe('soft delete, restore, archive', () => {
     expect(archived.ok && archived.value.archivedAt !== null).toBe(true);
     const defaultList = listCapsules(c.db, { projectId });
     expect(defaultList.ok && defaultList.value).toHaveLength(0);
-    const archivedList = listCapsules(c.db, { projectId, includeArchived: true });
+    const archivedList = listCapsules(c.db, {
+      projectId,
+      includeArchived: true,
+    });
     expect(archivedList.ok && archivedList.value).toHaveLength(1);
 
     const unarchived = setCapsuleArchived(c.db, id, false);
     expect(unarchived.ok && unarchived.value.archivedAt === null).toBe(true);
-    expect(listCapsules(c.db, { projectId }).ok && listCapsules(c.db, { projectId }).ok).toBe(
-      true,
-    );
+    expect(listCapsules(c.db, { projectId }).ok && listCapsules(c.db, { projectId }).ok).toBe(true);
     const back = listCapsules(c.db, { projectId });
     expect(back.ok && back.value).toHaveLength(1);
   });

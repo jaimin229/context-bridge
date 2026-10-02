@@ -35,15 +35,19 @@ export default function App(): React.ReactElement {
 
   const project = projects.find((p) => p.id === projectId) ?? null;
   const selected = capsules.find((c) => c.id === selectedId) ?? null;
+  const activeCapsule = capsules.find((c) => c.id === activeCapsuleId) ?? null;
 
   const notify = useCallback(
     (message: string, action?: { label: string; run: () => void }): void => {
       if (toastTimer.current) clearTimeout(toastTimer.current);
       const id = Date.now();
       setToast({ id, message, action });
-      toastTimer.current = setTimeout(() => {
-        setToast((t) => (t && t.id === id ? null : t));
-      }, action ? 9000 : 3500);
+      toastTimer.current = setTimeout(
+        () => {
+          setToast((t) => (t && t.id === id ? null : t));
+        },
+        action ? 9000 : 3500,
+      );
     },
     [],
   );
@@ -64,12 +68,13 @@ export default function App(): React.ReactElement {
     }
   }, []);
 
-  const refreshActive = useCallback(async (pid: string): Promise<void> => {
+  const refreshActive = useCallback(async (pid: string, autoSelect = true): Promise<void> => {
     try {
       const active = await call(
         window.contextBridgeApi.capsules.getActiveHandoff({ projectId: pid }),
       );
       setActiveCapsuleId(active?.id ?? null);
+      if (active && autoSelect) setSelectedId((prev) => prev ?? active.id);
     } catch {
       setActiveCapsuleId(null);
     }
@@ -117,7 +122,12 @@ export default function App(): React.ReactElement {
       await refreshCapsules(pid);
       await refreshActive(pid);
       try {
-        await call(window.contextBridgeApi.settings.set({ key: 'ui.lastProjectId', value: pid }));
+        await call(
+          window.contextBridgeApi.settings.set({
+            key: 'ui.lastProjectId',
+            value: pid,
+          }),
+        );
       } catch {
         // non-critical preference
       }
@@ -151,8 +161,11 @@ export default function App(): React.ReactElement {
 
   const onCapsuleDeleted = useCallback((): void => {
     setSelectedId(null);
-    if (projectId) void refreshCapsules(projectId);
-  }, [projectId, refreshCapsules]);
+    if (projectId) {
+      void refreshCapsules(projectId);
+      void refreshActive(projectId, false);
+    }
+  }, [projectId, refreshActive, refreshCapsules]);
 
   async function createCapsule(): Promise<void> {
     if (!projectId || creating) return;
@@ -243,6 +256,18 @@ export default function App(): React.ReactElement {
             </span>
           )}
         </div>
+
+        {activeCapsule && activeCapsule.id !== selectedId && (
+          <button
+            type="button"
+            onClick={() => setSelectedId(activeCapsule.id)}
+            className="max-w-[240px] truncate rounded-full border border-emerald-800 bg-emerald-950/60 px-3 py-1 text-[11px] font-medium text-emerald-300 transition hover:bg-emerald-950"
+            title="Jump to the Active Handoff"
+            data-testid="active-handoff-chip"
+          >
+            Active: {activeCapsule.title}
+          </button>
+        )}
 
         <div className="ml-auto flex items-center gap-2">
           <button
@@ -396,9 +421,7 @@ export default function App(): React.ReactElement {
         />
       )}
 
-      {settingsOpen && (
-        <SettingsDialog onClose={() => setSettingsOpen(false)} notify={notify} />
-      )}
+      {settingsOpen && <SettingsDialog onClose={() => setSettingsOpen(false)} notify={notify} />}
 
       {importOpen && (
         <ImportDialog

@@ -58,7 +58,8 @@ export const SECRET_RULES: SecretRule[] = [
     id: 'credential-assignment',
     description: 'Credential assigned to a variable',
     severity: 'medium',
-    pattern: /\b(?:api[_-]?key|secret|password|passwd|access[_-]?token|auth[_-]?token)\s*[:=]\s*["']?[^\s"'`]{8,}/gi,
+    pattern:
+      /\b(?:api[_-]?key|secret|password|passwd|access[_-]?token|auth[_-]?token)\s*[:=]\s*["']?[^\s"'`]{8,}/gi,
   },
 ];
 

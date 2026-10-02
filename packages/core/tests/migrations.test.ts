@@ -115,7 +115,9 @@ describe('openDatabase', () => {
     c.db.close();
     const ro = openDatabase({ databasePath: c.dbPath, readOnly: true });
     try {
-      const count = ro.prepare('SELECT count(*) AS c FROM projects').get() as { c: number };
+      const count = ro.prepare('SELECT count(*) AS c FROM projects').get() as {
+        c: number;
+      };
       expect(count.c).toBe(0);
     } finally {
       ro.close();

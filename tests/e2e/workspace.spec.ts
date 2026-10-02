@@ -35,7 +35,6 @@ test.describe('S3 workspace and workflows', () => {
     });
     try {
       const page = await app.firstWindow();
-      page.on('dialog', (dialog) => void dialog.accept());
 
       await assertStartupChecks(page);
 
@@ -50,11 +49,12 @@ test.describe('S3 workspace and workflows', () => {
       await page.getByTestId('field-goal').fill('Investigate the login redirect bug');
       await expect(page.getByTestId('dirty-indicator')).toBeVisible();
 
-      await expect(page.getByTestId('handoff-preview')).toContainText(
-        'login redirect bug',
-        { timeout: 15_000 },
-      );
-      await page.screenshot({ path: path.join(EVIDENCE_DIR, 'editor-live-preview.png') });
+      await expect(page.getByTestId('handoff-preview')).toContainText('login redirect bug', {
+        timeout: 15_000,
+      });
+      await page.screenshot({
+        path: path.join(EVIDENCE_DIR, 'editor-live-preview.png'),
+      });
 
       await page.getByTestId('save-capsule').click();
       await expect(page.getByTestId('toast')).toContainText('Capsule saved');
@@ -62,19 +62,21 @@ test.describe('S3 workspace and workflows', () => {
 
       await page.getByTestId('open-search').click();
       await page.getByTestId('search-input').fill('login redirect');
-      await expect(page.getByTestId('search-hit').first()).toBeVisible({ timeout: 10_000 });
+      await expect(page.getByTestId('search-hit').first()).toBeVisible({
+        timeout: 10_000,
+      });
       await page.getByTestId('search-hit').first().click();
       await expect(page.getByTestId('capsule-title')).toHaveValue('Login Bug Handoff');
 
       await page.getByTestId('copy-handoff').click();
-      await expect(page.getByTestId('toast')).toContainText(
-        'Handoff markdown copied to clipboard',
-      );
+      await expect(page.getByTestId('toast')).toContainText('Handoff markdown copied to clipboard');
 
       await page.getByTestId('export-markdown').click();
       await expect(page.getByTestId('dialog-text')).toContainText('# Project Handoff');
       await page.getByTestId('dialog-copy').click();
-      await page.screenshot({ path: path.join(EVIDENCE_DIR, 'export-dialog.png') });
+      await page.screenshot({
+        path: path.join(EVIDENCE_DIR, 'export-dialog.png'),
+      });
       await page.getByLabel('Close dialog').click();
 
       await page.getByTestId('export-json').click();
@@ -91,10 +93,14 @@ test.describe('S3 workspace and workflows', () => {
       await page.getByTestId('import-submit').click();
       await expect(page.getByTestId('toast')).toContainText('imported as plain notes');
       await expect(page.getByTestId('capsule-title')).toHaveValue('# Imported Scratch');
-      await page.screenshot({ path: path.join(EVIDENCE_DIR, 'workspace-after-import.png') });
+      await page.screenshot({
+        path: path.join(EVIDENCE_DIR, 'workspace-after-import.png'),
+      });
 
       await expect(page.getByTestId('capsule-list-item')).toHaveCount(2);
       await page.getByTestId('delete-capsule').click();
+      await expect(page.getByTestId('confirm-delete')).toBeVisible();
+      await page.getByTestId('confirm-delete').click();
       await expect(page.getByTestId('toast-action')).toBeVisible();
       await expect(page.getByTestId('capsule-list-item')).toHaveCount(1);
       await page.getByTestId('toast-action').click();
@@ -131,6 +137,10 @@ test.describe('S3 workspace and workflows', () => {
       await page.getByTestId('save-capsule').click();
       await expect(page.getByTestId('toast')).toContainText('Capsule saved');
 
+      await expect(page.getByTestId('drift-banner')).toContainText('No drift', {
+        timeout: 20_000,
+      });
+
       writeFileSync(path.join(repoDir, 'main.ts'), 'export const app = 2;\n');
       git(['add', '.'], repoDir);
       git(['commit', '-m', 'advance'], repoDir);
@@ -139,7 +149,9 @@ test.describe('S3 workspace and workflows', () => {
       await expect(page.getByTestId('drift-banner')).toContainText('Drift detected', {
         timeout: 20_000,
       });
-      await page.screenshot({ path: path.join(EVIDENCE_DIR, 'drift-banner.png') });
+      await page.screenshot({
+        path: path.join(EVIDENCE_DIR, 'drift-banner.png'),
+      });
     } finally {
       await app.close();
       rmSync(repoDir, { recursive: true, force: true });

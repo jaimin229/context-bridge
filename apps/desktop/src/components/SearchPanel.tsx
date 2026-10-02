@@ -28,7 +28,11 @@ const TYPE_OPTIONS = [
 const STATUS_OPTIONS = ['Draft', 'Active', 'Verified', 'Deprecated', 'Archived'];
 
 /** Local FTS search across capsule content with type/status filters. */
-export default function SearchPanel({ projectId, onSelect, onClose }: SearchPanelProps): React.ReactElement {
+export default function SearchPanel({
+  projectId,
+  onSelect,
+  onClose,
+}: SearchPanelProps): React.ReactElement {
   const [query, setQuery] = useState('');
   const [type, setType] = useState('');
   const [status, setStatus] = useState('');
@@ -158,12 +162,18 @@ export default function SearchPanel({ projectId, onSelect, onClose }: SearchPane
         </div>
 
         {error && (
-          <p role="alert" className="border-b border-rose-900/50 bg-rose-950/40 px-4 py-2 text-xs text-rose-300">
+          <p
+            role="alert"
+            className="border-b border-rose-900/50 bg-rose-950/40 px-4 py-2 text-xs text-rose-300"
+          >
             {error}
           </p>
         )}
 
-        <ul className="max-h-96 divide-y divide-slate-800 overflow-y-auto" data-testid="search-results">
+        <ul
+          className="max-h-96 divide-y divide-slate-800 overflow-y-auto"
+          data-testid="search-results"
+        >
           {hits.map((hit) => (
             <li key={hit.id}>
               <button

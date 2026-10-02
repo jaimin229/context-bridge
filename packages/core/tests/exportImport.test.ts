@@ -52,8 +52,14 @@ const input = {
   tags: ['export', 'round-trip'],
 };
 
-function createSourceCapsule(c: TestContext): { capsule: Capsule; projectId: string } {
-  const p = createProject(c.db, { name: 'Bridge API', repositoryPath: 'C:\\dev\\bridge' });
+function createSourceCapsule(c: TestContext): {
+  capsule: Capsule;
+  projectId: string;
+} {
+  const p = createProject(c.db, {
+    name: 'Bridge API',
+    repositoryPath: 'C:\\dev\\bridge',
+  });
   if (!p.ok) throw new Error('setup failed');
   const cap = createCapsule(c.db, p.value.id, input);
   if (!cap.ok) throw new Error('setup failed');
@@ -61,7 +67,10 @@ function createSourceCapsule(c: TestContext): { capsule: Capsule; projectId: str
 }
 
 function createTargetProject(c: TestContext): string {
-  const p = createProject(c.db, { name: 'Bridge API', repositoryPath: 'C:\\dev\\bridge' });
+  const p = createProject(c.db, {
+    name: 'Bridge API',
+    repositoryPath: 'C:\\dev\\bridge',
+  });
   if (!p.ok) throw new Error('setup failed');
   return p.value.id;
 }
@@ -97,11 +106,9 @@ describe('JSON export / import', () => {
     const { capsule } = createSourceCapsule(c);
     const p = createProject(c.db, { name: 'Bridge API' });
     if (!p.ok) throw new Error('setup failed');
-    const text = toJsonExportString(
-      capsule,
-      { ...p.value, repositoryPath: 'C:\\dev\\bridge' },
-      [{ id: 't1', name: 'export', createdAt: capsule.createdAt }],
-    );
+    const text = toJsonExportString(capsule, { ...p.value, repositoryPath: 'C:\\dev\\bridge' }, [
+      { id: 't1', name: 'export', createdAt: capsule.createdAt },
+    ]);
     const doc = JSON.parse(text) as Record<string, unknown>;
     expect(doc.schemaVersion).toBe(1);
     expect(doc.app).toBe('ContextBridge');

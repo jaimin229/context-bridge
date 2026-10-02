@@ -31,7 +31,10 @@ describe('app settings', () => {
     expect(getSetting(c.db, 'tokenBudget', 8000)).toBe(12000);
 
     expect(setSetting(c.db, 'filters', { types: ['Bug Report'], tags: ['x'] }).ok).toBe(true);
-    expect(getSetting(c.db, 'filters', null)).toEqual({ types: ['Bug Report'], tags: ['x'] });
+    expect(getSetting(c.db, 'filters', null)).toEqual({
+      types: ['Bug Report'],
+      tags: ['x'],
+    });
   });
 
   it('overwrites existing keys', () => {
@@ -63,9 +66,7 @@ describe('app settings', () => {
   it('recovers from stored invalid JSON', () => {
     const c = ctx();
     c.db
-      .prepare(
-        'INSERT INTO app_settings (key, value_json, updated_at) VALUES (?, ?, ?)',
-      )
+      .prepare('INSERT INTO app_settings (key, value_json, updated_at) VALUES (?, ?, ?)')
       .run('broken', 'not-json', new Date().toISOString());
     expect(getSetting(c.db, 'broken', 'fallback')).toBe('fallback');
   });

@@ -126,7 +126,12 @@ function draftToInput(draft: DraftForm): CapsuleInput {
   };
 }
 
-const SIMPLE_FIELDS: Array<{ key: keyof DraftForm; label: string; hint?: string; rows?: number }> = [
+const SIMPLE_FIELDS: Array<{
+  key: keyof DraftForm;
+  label: string;
+  hint?: string;
+  rows?: number;
+}> = [
   { key: 'goal', label: 'Goal', rows: 4 },
   { key: 'currentTask', label: 'Current task', rows: 4 },
   { key: 'completedWork', label: 'Completed work', rows: 4 },
@@ -141,11 +146,25 @@ const ADVANCED_FIELDS: Array<{
   mono?: boolean;
 }> = [
   { key: 'summary', label: 'Summary', rows: 2 },
-  { key: 'changedFilesText', label: 'Files changed (one per line)', rows: 3, mono: true },
-  { key: 'commandsRunText', label: 'Commands run (one per line)', rows: 3, mono: true },
+  {
+    key: 'changedFilesText',
+    label: 'Files changed (one per line)',
+    rows: 3,
+    mono: true,
+  },
+  {
+    key: 'commandsRunText',
+    label: 'Commands run (one per line)',
+    rows: 3,
+    mono: true,
+  },
   { key: 'verificationResults', label: 'Verification results', rows: 3 },
   { key: 'rulesConstraints', label: 'Rules and constraints', rows: 3 },
-  { key: 'architectureNotes', label: 'Architecture / technical notes', rows: 3 },
+  {
+    key: 'architectureNotes',
+    label: 'Architecture / technical notes',
+    rows: 3,
+  },
   { key: 'notes', label: 'Notes', rows: 3 },
 ];
 
@@ -167,6 +186,7 @@ export default function CapsuleEditor({
   onDeleted,
 }: CapsuleEditorProps): React.ReactElement {
   const [draft, setDraft] = useState<DraftForm>(() => toDraft(capsule, []));
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const [advanced, setAdvanced] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -176,32 +196,63 @@ export default function CapsuleEditor({
   const [drift, setDrift] = useState<DriftReport | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [revisions, setRevisions] = useState<CapsuleRevision[]>([]);
-  const [textDialog, setTextDialog] = useState<{ title: string; text: string } | null>(null);
+  const [textDialog, setTextDialog] = useState<{
+    title: string;
+    text: string;
+  } | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   useEffect(() => {
+    if (loadedFor === capsule.id) return;
     let cancelled = false;
     void (async () => {
       try {
         const tags = await call(
-          window.contextBridgeApi.tags.listForCapsule({ capsuleId: capsule.id }),
+          window.contextBridgeApi.tags.listForCapsule({
+            capsuleId: capsule.id,
+          }),
         );
         if (!cancelled) {
-          setDraft(toDraft(capsule, tags.map((t) => t.name)));
+          setDraft(
+            toDraft(
+              capsule,
+              tags.map((t) => t.name),
+            ),
+          );
           setDirty(false);
           setDrift(null);
           setError(null);
+          setLoadedFor(capsule.id);
         }
       } catch {
         if (!cancelled) {
           setDraft(toDraft(capsule, []));
           setDirty(false);
+          setLoadedFor(capsule.id);
         }
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [capsule]);
+  }, [capsule, loadedFor]);
+
+  useEffect(() => {
+    if (!capsule.gitSnapshot || project.repositoryPath.trim().length === 0) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const report = await call(window.contextBridgeApi.git.drift({ capsuleId: capsule.id }));
+        if (!cancelled) setDrift(report);
+      } catch {
+        // The drift banner is optional; a failed check stays silent until
+        // the user presses "Check drift" and gets an explicit error toast.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [capsule, project.repositoryPath]);
 
   const input = useMemo(() => draftToInput(draft), [draft]);
 
@@ -290,7 +341,9 @@ export default function CapsuleEditor({
     setBusy(true);
     try {
       const snapshot = await call(
-        window.contextBridgeApi.git.capture({ repositoryPath: project.repositoryPath }),
+        window.contextBridgeApi.git.capture({
+          repositoryPath: project.repositoryPath,
+        }),
       );
       patch({
         gitHead: snapshot.head ?? '',
@@ -340,9 +393,7 @@ export default function CapsuleEditor({
 
   async function openHistory(): Promise<void> {
     try {
-      const list = await call(
-        window.contextBridgeApi.revisions.list({ capsuleId: capsule.id }),
-      );
+      const list = await call(window.contextBridgeApi.revisions.list({ capsuleId: capsule.id }));
       setRevisions(list);
       setShowHistory(true);
     } catch (err) {
@@ -360,6 +411,17 @@ export default function CapsuleEditor({
           reason: 'manual-save',
         }),
       );
+      const tags = await call(
+        window.contextBridgeApi.tags.listForCapsule({ capsuleId: capsule.id }),
+      );
+      setDraft(
+        toDraft(
+          updated,
+          tags.map((t) => t.name),
+        ),
+      );
+      setDirty(false);
+      setPreviewNonce((n) => n + 1);
       onChanged(updated);
       setShowHistory(false);
       notify(`Restored version ${revision.version}`);
@@ -395,7 +457,11 @@ export default function CapsuleEditor({
 
   async function setActive(): Promise<void> {
     try {
-      await call(window.contextBridgeApi.capsules.setActiveHandoff({ capsuleId: capsule.id }));
+      await call(
+        window.contextBridgeApi.capsules.setActiveHandoff({
+          capsuleId: capsule.id,
+        }),
+      );
       notify('Marked as active handoff');
       onChanged(capsule);
     } catch (err) {
@@ -404,9 +470,11 @@ export default function CapsuleEditor({
   }
 
   function deleteCapsule(): void {
-    if (!window.confirm('Delete this capsule? It can be restored from the archive view.')) {
-      return;
-    }
+    setConfirmingDelete(true);
+  }
+
+  function performDelete(): void {
+    setConfirmingDelete(false);
     void (async () => {
       try {
         await call(window.contextBridgeApi.capsules.softDelete({ id: capsule.id }));
@@ -504,38 +572,94 @@ export default function CapsuleEditor({
               className="flex items-center gap-1.5 rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-sky-500 disabled:opacity-50"
               data-testid="save-capsule"
             >
-              {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+              {busy ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Save className="h-3.5 w-3.5" />
+              )}
               Save
             </button>
-            <button type="button" onClick={() => void copyHandoff()} disabled={busy} className={actionBtn} data-testid="copy-handoff">
+            <button
+              type="button"
+              onClick={() => void copyHandoff()}
+              disabled={busy}
+              className={actionBtn}
+              data-testid="copy-handoff"
+            >
               <Copy className="h-3.5 w-3.5" /> Copy handoff
             </button>
-            <button type="button" onClick={() => void exportAs('markdown')} disabled={busy} className={actionBtn} data-testid="export-markdown">
+            <button
+              type="button"
+              onClick={() => void exportAs('markdown')}
+              disabled={busy}
+              className={actionBtn}
+              data-testid="export-markdown"
+            >
               <Download className="h-3.5 w-3.5" /> MD
             </button>
-            <button type="button" onClick={() => void exportAs('json')} disabled={busy} className={actionBtn} data-testid="export-json">
+            <button
+              type="button"
+              onClick={() => void exportAs('json')}
+              disabled={busy}
+              className={actionBtn}
+              data-testid="export-json"
+            >
               <FileJson className="h-3.5 w-3.5" /> JSON
             </button>
-            <button type="button" onClick={() => void openHistory()} disabled={busy} className={actionBtn} data-testid="open-history">
+            <button
+              type="button"
+              onClick={() => void openHistory()}
+              disabled={busy}
+              className={actionBtn}
+              data-testid="open-history"
+            >
               <History className="h-3.5 w-3.5" /> History
             </button>
             <span className="mx-1 h-5 w-px bg-slate-800" aria-hidden="true" />
-            <button type="button" onClick={() => void captureGit()} disabled={busy} className={actionBtn} data-testid="capture-git">
+            <button
+              type="button"
+              onClick={() => void captureGit()}
+              disabled={busy}
+              className={actionBtn}
+              data-testid="capture-git"
+            >
               <GitBranch className="h-3.5 w-3.5" /> Capture git
             </button>
-            <button type="button" onClick={() => void checkDrift()} disabled={busy} className={actionBtn} data-testid="check-drift">
+            <button
+              type="button"
+              onClick={() => void checkDrift()}
+              disabled={busy}
+              className={actionBtn}
+              data-testid="check-drift"
+            >
               <Search className="h-3.5 w-3.5" /> Check drift
             </button>
             <span className="mx-1 h-5 w-px bg-slate-800" aria-hidden="true" />
             {!isActiveHandoff && (
-              <button type="button" onClick={() => void setActive()} disabled={busy} className={actionBtn} data-testid="set-active">
+              <button
+                type="button"
+                onClick={() => void setActive()}
+                disabled={busy}
+                className={actionBtn}
+                data-testid="set-active"
+              >
                 <Wand2 className="h-3.5 w-3.5" /> Set active
               </button>
             )}
-            <button type="button" onClick={() => void duplicateCapsule()} disabled={busy} className={actionBtn}>
+            <button
+              type="button"
+              onClick={() => void duplicateCapsule()}
+              disabled={busy}
+              className={actionBtn}
+            >
               <Copy className="h-3.5 w-3.5" /> Duplicate
             </button>
-            <button type="button" onClick={() => void archiveCapsule()} disabled={busy} className={actionBtn}>
+            <button
+              type="button"
+              onClick={() => void archiveCapsule()}
+              disabled={busy}
+              className={actionBtn}
+            >
               <Archive className="h-3.5 w-3.5" />
               {capsule.archivedAt === null ? 'Archive' : 'Unarchive'}
             </button>
@@ -604,7 +728,10 @@ export default function CapsuleEditor({
           <div className="min-h-0 overflow-y-auto border-r border-slate-800 px-5 py-4">
             <div className="space-y-4">
               <div>
-                <label htmlFor="capsule-summary" className="mb-1 block text-xs font-medium text-slate-400">
+                <label
+                  htmlFor="capsule-summary"
+                  className="mb-1 block text-xs font-medium text-slate-400"
+                >
                   Summary
                 </label>
                 <textarea
@@ -629,7 +756,11 @@ export default function CapsuleEditor({
                   <textarea
                     id={`capsule-${String(field.key)}`}
                     value={String(draft[field.key] ?? '')}
-                    onChange={(e) => patch({ [field.key]: e.target.value } as Partial<DraftForm>)}
+                    onChange={(e) =>
+                      patch({
+                        [field.key]: e.target.value,
+                      } as Partial<DraftForm>)
+                    }
                     rows={field.rows}
                     maxLength={100000}
                     className="w-full resize-y rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200"
@@ -650,7 +781,11 @@ export default function CapsuleEditor({
                     <textarea
                       id={`capsule-${String(field.key)}`}
                       value={String(draft[field.key] ?? '')}
-                      onChange={(e) => patch({ [field.key]: e.target.value } as Partial<DraftForm>)}
+                      onChange={(e) =>
+                        patch({
+                          [field.key]: e.target.value,
+                        } as Partial<DraftForm>)
+                      }
                       rows={field.rows}
                       maxLength={100000}
                       className={`w-full resize-y rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200 ${
@@ -663,7 +798,10 @@ export default function CapsuleEditor({
 
               {advanced && (
                 <div>
-                  <label htmlFor="capsule-tags" className="mb-1 block text-xs font-medium text-slate-400">
+                  <label
+                    htmlFor="capsule-tags"
+                    className="mb-1 block text-xs font-medium text-slate-400"
+                  >
                     Tags (comma separated)
                   </label>
                   <input
@@ -691,6 +829,40 @@ export default function CapsuleEditor({
         </div>
       </form>
 
+      {confirmingDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Confirm delete"
+        >
+          <div className="w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+            <h2 className="text-sm font-semibold text-slate-200">Delete this capsule?</h2>
+            <p className="mt-2 text-xs text-slate-400">
+              “{capsule.title}” moves to the archive. You can restore it right after with Undo.
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmingDelete(false)}
+                className="rounded-lg border border-slate-700 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-800"
+                data-testid="cancel-delete"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={performDelete}
+                className="rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white hover:bg-rose-500"
+                data-testid="confirm-delete"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {pendingFindings && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-6"
@@ -708,7 +880,10 @@ export default function CapsuleEditor({
             </p>
             <ul className="mt-4 max-h-56 space-y-2 overflow-y-auto" data-testid="secret-findings">
               {pendingFindings.map((f, idx) => (
-                <li key={idx} className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2">
+                <li
+                  key={idx}
+                  className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2"
+                >
                   <span className="block text-xs font-medium text-slate-200">{f.description}</span>
                   <span className="block font-mono text-[11px] text-amber-400">
                     {f.redacted} · line {f.line}, col {f.column} · {f.severity}
@@ -799,7 +974,11 @@ export default function CapsuleEditor({
       )}
 
       {textDialog && (
-        <TextDialog title={textDialog.title} text={textDialog.text} onClose={() => setTextDialog(null)} />
+        <TextDialog
+          title={textDialog.title}
+          text={textDialog.text}
+          onClose={() => setTextDialog(null)}
+        />
       )}
     </div>
   );

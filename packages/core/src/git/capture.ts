@@ -31,9 +31,15 @@ async function runGit(repositoryPath: string, args: readonly string[]): Promise<
     });
     return { kind: 'ok', stdout };
   } catch (error) {
-    const e = error as NodeJS.ErrnoException & { stderr?: string; killed?: boolean };
+    const e = error as NodeJS.ErrnoException & {
+      stderr?: string;
+      killed?: boolean;
+    };
     if (e.code === 'ENOENT') {
-      return { kind: 'git-missing', message: 'Git is not installed or not on PATH.' };
+      return {
+        kind: 'git-missing',
+        message: 'Git is not installed or not on PATH.',
+      };
     }
     const text = `${e.stderr ?? ''}${e.message ?? ''}`;
     if (/not a git repository/i.test(text)) {

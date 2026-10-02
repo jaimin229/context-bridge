@@ -1,10 +1,7 @@
 import type { GitSnapshotInfo } from '../types';
 
 export type DriftReason =
-  | 'head-changed'
-  | 'branch-changed'
-  | 'working-tree-changed'
-  | 'repository-unavailable';
+  'head-changed' | 'branch-changed' | 'working-tree-changed' | 'repository-unavailable';
 
 export interface DriftReport {
   hasDrift: boolean;

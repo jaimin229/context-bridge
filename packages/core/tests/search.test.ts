@@ -84,9 +84,7 @@ describe('buildMatchQuery', () => {
   it('treats FTS operators as literal text', () => {
     expect(buildMatchQuery('NEAR(')).toBe('"NEAR("*');
     expect(buildMatchQuery('*')).toBe('"*"*');
-    expect(buildMatchQuery('migration OR elephant')).toBe(
-      '"migration" AND "OR" AND "elephant"*',
-    );
+    expect(buildMatchQuery('migration OR elephant')).toBe('"migration" AND "OR" AND "elephant"*');
     expect(buildMatchQuery('a:b')).toBe('"a:b"*');
   });
 
@@ -163,7 +161,9 @@ describe('searchCapsules', () => {
       const titles = excluded.value.hits.map((h) => h.title);
       expect(titles).not.toContain('Old migration notes');
     }
-    const included = searchCapsules(c.db, 'migration', { includeArchived: true });
+    const included = searchCapsules(c.db, 'migration', {
+      includeArchived: true,
+    });
     expect(included.ok).toBe(true);
     if (included.ok) {
       expect(included.value.hits.map((h) => h.title)).toContain('Old migration notes');
@@ -178,7 +178,9 @@ describe('searchCapsules', () => {
     if (excluded.ok) {
       expect(excluded.value.hits.map((h) => h.title)).not.toContain('Deleted migration draft');
     }
-    const included = searchCapsules(c.db, 'migration', { includeDeleted: true });
+    const included = searchCapsules(c.db, 'migration', {
+      includeDeleted: true,
+    });
     expect(included.ok).toBe(true);
     if (included.ok) {
       expect(included.value.hits.map((h) => h.title)).toContain('Deleted migration draft');
@@ -204,13 +206,17 @@ describe('searchCapsules', () => {
       expect(byProject.value.hits.some((h) => h.id === otherCapsule.value.id)).toBe(false);
     }
 
-    const byType = searchCapsules(c.db, 'migration', { types: ['Architecture'] });
+    const byType = searchCapsules(c.db, 'migration', {
+      types: ['Architecture'],
+    });
     expect(byType.ok).toBe(true);
     if (byType.ok) {
       expect(byType.value.hits.map((h) => h.id)).toEqual([migrationId]);
     }
 
-    const byStatus = searchCapsules(c.db, 'migration', { statuses: ['Verified'] });
+    const byStatus = searchCapsules(c.db, 'migration', {
+      statuses: ['Verified'],
+    });
     expect(byStatus.ok).toBe(true);
     if (byStatus.ok) {
       expect(byStatus.value.hits.map((h) => h.id)).toEqual([otherCapsule.value.id]);
@@ -222,7 +228,9 @@ describe('searchCapsules', () => {
       expect(byTag.value.hits.map((h) => h.id)).toEqual([migrationId]);
     }
 
-    const noTag = searchCapsules(c.db, 'migration', { tagNames: ['missing-tag'] });
+    const noTag = searchCapsules(c.db, 'migration', {
+      tagNames: ['missing-tag'],
+    });
     expect(noTag.ok).toBe(true);
     if (noTag.ok) {
       expect(noTag.value.hits).toHaveLength(0);
@@ -293,7 +301,9 @@ describe('searchCapsules', () => {
     if (stillThere.ok) {
       expect(stillThere.value.hits.map((h) => h.id)).toContain(migrationId);
     }
-    const rows = c.db.prepare('SELECT count(*) AS n FROM capsules').get() as { n: number };
+    const rows = c.db.prepare('SELECT count(*) AS n FROM capsules').get() as {
+      n: number;
+    };
     expect(rows.n).toBe(5);
   });
 

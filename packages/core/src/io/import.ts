@@ -27,9 +27,7 @@ export function parseJsonImport(text: string): AppResult<JsonExportDocument> {
     raw = JSON.parse(text);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Invalid JSON';
-    return err('VALIDATION', 'File is not valid JSON.', [
-      { field: '(root)', message },
-    ]);
+    return err('VALIDATION', 'File is not valid JSON.', [{ field: '(root)', message }]);
   }
   const parsed = exportDocumentSchema.safeParse(raw);
   if (!parsed.success) {
@@ -232,9 +230,7 @@ export function parseMarkdownImport(text: string): AppResult<MarkdownImportResul
       knownIssues: sectionText(get('Known Issues / Blockers')),
       nextTask: sectionText(get('Next Exact Task')),
       rulesConstraints: stripMasterContextBlock(get('Rules and Constraints')).trim(),
-      architectureNotes: stripMasterContextBlock(
-        get('Architecture / Technical Notes'),
-      ).trim(),
+      architectureNotes: stripMasterContextBlock(get('Architecture / Technical Notes')).trim(),
       notes: '',
       gitHead: validated.data.git_head,
       gitBranch: validated.data.git_branch,
@@ -260,9 +256,7 @@ export function importNormalized(
   let importedOriginalId: string | null = null;
 
   if (normalized.sourceId !== null) {
-    const collision = db
-      .prepare('SELECT 1 FROM capsules WHERE id = ?')
-      .get(normalized.sourceId);
+    const collision = db.prepare('SELECT 1 FROM capsules WHERE id = ?').get(normalized.sourceId);
     if (collision) {
       preserveId = undefined;
       importedOriginalId = normalized.sourceId;
@@ -272,17 +266,12 @@ export function importNormalized(
     }
   }
 
-  return createCapsule(
-    db,
-    projectId,
-    normalized.input,
-    {
-      revisionReason: 'import',
-      source: 'imported',
-      preserveId,
-      importedOriginalId,
-      createdAt: normalized.createdAt ?? undefined,
-      updatedAt: normalized.updatedAt ?? undefined,
-    },
-  );
+  return createCapsule(db, projectId, normalized.input, {
+    revisionReason: 'import',
+    source: 'imported',
+    preserveId,
+    importedOriginalId,
+    createdAt: normalized.createdAt ?? undefined,
+    updatedAt: normalized.updatedAt ?? undefined,
+  });
 }

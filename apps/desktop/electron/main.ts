@@ -46,7 +46,10 @@ function runSmokeMode(outPath: string | undefined): void {
       };
       exitCode = ok ? 0 : 1;
     } catch (err) {
-      payload = { ok: false, error: err instanceof Error ? err.message : String(err) };
+      payload = {
+        ok: false,
+        error: err instanceof Error ? err.message : String(err),
+      };
       exitCode = 1;
     }
     if (outPath) {
@@ -142,8 +145,7 @@ function applySecurityPolicies(): void {
   const csp = devServerUrl ? DEV_CSP : PROD_CSP;
 
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-    const isOurs =
-      details.url.startsWith(DEV_SERVER_ORIGIN) || details.url.startsWith('file:');
+    const isOurs = details.url.startsWith(DEV_SERVER_ORIGIN) || details.url.startsWith('file:');
     if (!isOurs) {
       callback({ responseHeaders: details.responseHeaders });
       return;

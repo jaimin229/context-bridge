@@ -19,7 +19,9 @@ export interface Fts5CheckResult {
  * foreign keys ON, WAL journal mode, busy timeout.
  */
 export function openDatabase(options: OpenDatabaseOptions): Database.Database {
-  const db = new Database(options.databasePath, { readonly: options.readOnly ?? false });
+  const db = new Database(options.databasePath, {
+    readonly: options.readOnly ?? false,
+  });
   db.pragma('foreign_keys = ON');
   if (!options.readOnly) {
     db.pragma('journal_mode = WAL');
@@ -57,7 +59,9 @@ export interface SqliteProbeResult {
 export function probeSqlite(options: OpenDatabaseOptions): SqliteProbeResult {
   const db = openDatabase(options);
   try {
-    const versionRow = db.prepare('SELECT sqlite_version() AS v').get() as { v: string };
+    const versionRow = db.prepare('SELECT sqlite_version() AS v').get() as {
+      v: string;
+    };
     const fts = checkFts5(db);
     return {
       sqliteVersion: versionRow.v,

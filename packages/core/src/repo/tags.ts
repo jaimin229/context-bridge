@@ -27,9 +27,9 @@ export function createTag(db: Database, name: string): AppResult<Tag> {
   if (UNSAFE_TAG_CHARS.test(normalized)) {
     return err('VALIDATION', 'Tag name must not contain , ; [ ] { }.');
   }
-  const existing = db.prepare('SELECT id, name, created_at FROM tags WHERE name = ?').get(
-    normalized,
-  ) as TagRow | undefined;
+  const existing = db
+    .prepare('SELECT id, name, created_at FROM tags WHERE name = ?')
+    .get(normalized) as TagRow | undefined;
   if (existing) {
     return ok(mapTag(existing));
   }

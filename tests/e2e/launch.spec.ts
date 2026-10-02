@@ -18,7 +18,9 @@ test.describe('S0 Electron launch proof', () => {
     try {
       const page = await app.firstWindow();
       await assertStartupChecks(page);
-      await page.screenshot({ path: path.join(EVIDENCE_DIR, 'dev-launch.png') });
+      await page.screenshot({
+        path: path.join(EVIDENCE_DIR, 'dev-launch.png'),
+      });
     } finally {
       await app.close();
     }
@@ -35,19 +37,16 @@ test.describe('S0 Electron launch proof', () => {
     try {
       const page = await app.firstWindow();
       await assertStartupChecks(page);
-      await page.screenshot({ path: path.join(EVIDENCE_DIR, 'prod-launch.png') });
+      await page.screenshot({
+        path: path.join(EVIDENCE_DIR, 'prod-launch.png'),
+      });
     } finally {
       await app.close();
     }
   });
 
   test('packaged Windows app: window launches from win-unpacked with all checks passing', async () => {
-    const packagedExe = path.join(
-      DESKTOP_DIR,
-      'release',
-      'win-unpacked',
-      'ContextBridge.exe',
-    );
+    const packagedExe = path.join(DESKTOP_DIR, 'release', 'win-unpacked', 'ContextBridge.exe');
     test.skip(!existsSync(packagedExe), 'packaged build not present (run npm run package:dir)');
     mkdirSync(EVIDENCE_DIR, { recursive: true });
     const env = freshEnv();
@@ -59,7 +58,9 @@ test.describe('S0 Electron launch proof', () => {
     try {
       const page = await app.firstWindow();
       await assertStartupChecks(page);
-      await page.screenshot({ path: path.join(EVIDENCE_DIR, 'packaged-launch.png') });
+      await page.screenshot({
+        path: path.join(EVIDENCE_DIR, 'packaged-launch.png'),
+      });
     } finally {
       await app.close();
     }

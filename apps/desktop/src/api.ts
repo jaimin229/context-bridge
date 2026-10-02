@@ -11,9 +11,7 @@ export class AppCallError extends Error {
 export async function call<T>(operation: Promise<ResultLike<T>>): Promise<T> {
   const result = await operation;
   if (!result.ok) {
-    const details = result.error.details
-      ?.map((d) => `${d.field}: ${d.message}`)
-      .join('; ');
+    const details = result.error.details?.map((d) => `${d.field}: ${d.message}`).join('; ');
     throw new AppCallError(
       result.error.code,
       details ? `${result.error.message} ${details}` : result.error.message,

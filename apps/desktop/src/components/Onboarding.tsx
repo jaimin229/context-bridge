@@ -69,7 +69,10 @@ export default function Onboarding({ onCreated }: OnboardingProps): React.ReactE
             />
           </div>
           <div>
-            <label htmlFor="project-description" className="mb-1 block text-xs font-medium text-slate-400">
+            <label
+              htmlFor="project-description"
+              className="mb-1 block text-xs font-medium text-slate-400"
+            >
               Description (optional)
             </label>
             <textarea

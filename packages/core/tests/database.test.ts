@@ -31,7 +31,9 @@ describe('database layer (real temporary SQLite file)', () => {
 
     const reopened = openDatabase({ databasePath: dbPath });
     try {
-      const row = reopened.prepare('SELECT v FROM t ORDER BY id DESC LIMIT 1').get() as { v: string };
+      const row = reopened.prepare('SELECT v FROM t ORDER BY id DESC LIMIT 1').get() as {
+        v: string;
+      };
       expect(row.v).toBe('persisted');
     } finally {
       reopened.close();

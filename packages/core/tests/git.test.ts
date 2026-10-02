@@ -44,9 +44,24 @@ describe('porcelain -z parsing', () => {
       ' M src/app.ts\0A  staged.txt\0?? loose.txt\0R  new-name.txt\0old-name.txt\0',
     );
     expect(entries).toHaveLength(4);
-    expect(entries[0]).toMatchObject({ path: 'src/app.ts', staged: false, unstaged: true, untracked: false });
-    expect(entries[1]).toMatchObject({ path: 'staged.txt', staged: true, unstaged: false, untracked: false });
-    expect(entries[2]).toMatchObject({ path: 'loose.txt', staged: false, unstaged: false, untracked: true });
+    expect(entries[0]).toMatchObject({
+      path: 'src/app.ts',
+      staged: false,
+      unstaged: true,
+      untracked: false,
+    });
+    expect(entries[1]).toMatchObject({
+      path: 'staged.txt',
+      staged: true,
+      unstaged: false,
+      untracked: false,
+    });
+    expect(entries[2]).toMatchObject({
+      path: 'loose.txt',
+      staged: false,
+      unstaged: false,
+      untracked: true,
+    });
     expect(entries[3]).toMatchObject({
       path: 'new-name.txt',
       oldPath: 'old-name.txt',
@@ -208,7 +223,11 @@ describe('detectDrift', () => {
   });
 
   it('detects a changed set of dirty files even when both are dirty', () => {
-    const dirtyBaseline = { ...captured, workingTreeClean: false, changedFiles: ['a.txt'] };
+    const dirtyBaseline = {
+      ...captured,
+      workingTreeClean: false,
+      changedFiles: ['a.txt'],
+    };
     const report = detectDrift(dirtyBaseline, {
       ...dirtyBaseline,
       changedFiles: ['b.txt'],

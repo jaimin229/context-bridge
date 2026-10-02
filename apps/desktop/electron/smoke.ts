@@ -19,13 +19,15 @@ export function runSqliteProbe(databasePath: string): ProbeResult {
     db.pragma('journal_mode = WAL');
     db.pragma('busy_timeout = 5000');
 
-    const versionRow = db.prepare('SELECT sqlite_version() AS v').get() as { v: string };
+    const versionRow = db.prepare('SELECT sqlite_version() AS v').get() as {
+      v: string;
+    };
 
     let fts5Available = false;
     let fts5QueryWorked = false;
     try {
       db.exec('CREATE VIRTUAL TABLE IF NOT EXISTS probe_fts USING fts5(content)');
-      db.exec("DELETE FROM probe_fts");
+      db.exec('DELETE FROM probe_fts');
       db.exec("INSERT INTO probe_fts(content) VALUES ('contextbridge probe row')");
       const row = db
         .prepare("SELECT count(*) AS c FROM probe_fts WHERE probe_fts MATCH 'contextbridge'")

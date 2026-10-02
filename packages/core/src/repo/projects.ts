@@ -1,9 +1,5 @@
 import type { Database } from 'better-sqlite3';
-import {
-  formatZodIssues,
-  projectInputSchema,
-  projectPatchSchema,
-} from '../schemas';
+import { formatZodIssues, projectInputSchema, projectPatchSchema } from '../schemas';
 import { err, ok, type AppResult, type Project } from '../types';
 import { newId, nowIso, slugify, uniqueSlug } from '../util';
 
@@ -55,14 +51,9 @@ export function getProjectBySlug(db: Database, slug: string): AppResult<Project>
   return ok(mapProject(row));
 }
 
-export function listProjects(
-  db: Database,
-  options: { includeArchived?: boolean } = {},
-): Project[] {
+export function listProjects(db: Database, options: { includeArchived?: boolean } = {}): Project[] {
   const where = options.includeArchived ? '' : ' WHERE archived_at IS NULL';
-  const rows = db
-    .prepare(`${SELECT}${where} ORDER BY updated_at DESC`)
-    .all() as ProjectRow[];
+  const rows = db.prepare(`${SELECT}${where} ORDER BY updated_at DESC`).all() as ProjectRow[];
   return rows.map(mapProject);
 }
 
@@ -90,11 +81,7 @@ export function createProject(db: Database, input: unknown): AppResult<Project> 
   return getProject(db, id);
 }
 
-export function updateProject(
-  db: Database,
-  id: string,
-  patch: unknown,
-): AppResult<Project> {
+export function updateProject(db: Database, id: string, patch: unknown): AppResult<Project> {
   const existing = getProject(db, id);
   if (!existing.ok) {
     return existing;

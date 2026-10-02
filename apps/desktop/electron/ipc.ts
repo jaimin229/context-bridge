@@ -131,9 +131,7 @@ export interface AppErrorLike {
   details?: Array<{ field: string; message: string }>;
 }
 
-export type Result<T> =
-  | { ok: true; value: T }
-  | { ok: false; error: AppErrorLike };
+export type Result<T> = { ok: true; value: T } | { ok: false; error: AppErrorLike };
 
 /**
  * Validates the ping payload with Zod and returns a typed Result.
@@ -255,9 +253,7 @@ function defineChannel<I, O>(schema: z.ZodType<I>, handler: Handler<I, O>): Chan
 }
 
 const CHANNELS: Record<string, ChannelSpec> = {
-  [IPC_CHANNELS.ping]: defineChannel(pingRequestSchema, (deps, payload) =>
-    deps.ping(payload),
-  ),
+  [IPC_CHANNELS.ping]: defineChannel(pingRequestSchema, (deps, payload) => deps.ping(payload)),
 
   [IPC_CHANNELS.projectsList]: defineChannel(
     z.object({ includeArchived: z.boolean().optional() }).default({}),
@@ -299,9 +295,8 @@ const CHANNELS: Record<string, ChannelSpec> = {
     (deps, input) =>
       toResult(updateCapsule(deps.db, input.id, input.patch, { reason: input.reason })),
   ),
-  [IPC_CHANNELS.capsulesSoftDelete]: defineChannel(
-    z.object({ id: idField }),
-    (deps, input) => toResult(softDeleteCapsule(deps.db, input.id)),
+  [IPC_CHANNELS.capsulesSoftDelete]: defineChannel(z.object({ id: idField }), (deps, input) =>
+    toResult(softDeleteCapsule(deps.db, input.id)),
   ),
   [IPC_CHANNELS.capsulesRestore]: defineChannel(z.object({ id: idField }), (deps, input) =>
     toResult(restoreCapsule(deps.db, input.id)),
@@ -332,13 +327,15 @@ const CHANNELS: Record<string, ChannelSpec> = {
     (deps, input) => toResult(createTag(deps.db, input.name)),
   ),
 
-  [IPC_CHANNELS.revisionsList]: defineChannel(
-    z.object({ capsuleId: idField }),
-    (deps, input) => okValue(listRevisions(deps.db, input.capsuleId)),
+  [IPC_CHANNELS.revisionsList]: defineChannel(z.object({ capsuleId: idField }), (deps, input) =>
+    okValue(listRevisions(deps.db, input.capsuleId)),
   ),
 
   [IPC_CHANNELS.searchQuery]: defineChannel(
-    z.object({ query: z.string().max(1000), filter: searchFilterSchema.optional() }),
+    z.object({
+      query: z.string().max(1000),
+      filter: searchFilterSchema.optional(),
+    }),
     (deps, input) => toResult(searchCapsules(deps.db, input.query, input.filter)),
   ),
 
@@ -415,11 +412,12 @@ const CHANNELS: Record<string, ChannelSpec> = {
     (deps, input) => okValue(scanSecrets(input.text)),
   ),
 
-  [IPC_CHANNELS.settingsList]: defineChannel(z.unknown(), (deps) =>
-    okValue(listSettings(deps.db)),
-  ),
+  [IPC_CHANNELS.settingsList]: defineChannel(z.unknown(), (deps) => okValue(listSettings(deps.db))),
   [IPC_CHANNELS.settingsGet]: defineChannel(
-    z.object({ key: z.string().min(1).max(100), fallback: z.unknown().optional() }),
+    z.object({
+      key: z.string().min(1).max(100),
+      fallback: z.unknown().optional(),
+    }),
     (deps, input) => okValue(getSetting(deps.db, input.key, input.fallback ?? null)),
   ),
   [IPC_CHANNELS.settingsSet]: defineChannel(
@@ -432,27 +430,32 @@ const CHANNELS: Record<string, ChannelSpec> = {
     if (!capsule.ok) return capsule;
     const project = getProject(deps.db, capsule.value.projectId);
     if (!project.ok) return project;
-    return okValue(toJsonExportString(capsule.value, project.value, getTagsForCapsule(deps.db, capsule.value.id)));
+    return okValue(
+      toJsonExportString(
+        capsule.value,
+        project.value,
+        getTagsForCapsule(deps.db, capsule.value.id),
+      ),
+    );
   }),
-  [IPC_CHANNELS.exportMarkdown]: defineChannel(
-    z.object({ capsuleId: idField }),
-    (deps, input) => {
-      const capsule = getCapsule(deps.db, input.capsuleId);
-      if (!capsule.ok) return capsule;
-      const project = getProject(deps.db, capsule.value.projectId);
-      if (!project.ok) return project;
-      return okValue(
-        toMarkdownExport(capsule.value, project.value, getTagsForCapsule(deps.db, capsule.value.id)),
-      );
-    },
-  ),
+  [IPC_CHANNELS.exportMarkdown]: defineChannel(z.object({ capsuleId: idField }), (deps, input) => {
+    const capsule = getCapsule(deps.db, input.capsuleId);
+    if (!capsule.ok) return capsule;
+    const project = getProject(deps.db, capsule.value.projectId);
+    if (!project.ok) return project;
+    return okValue(
+      toMarkdownExport(capsule.value, project.value, getTagsForCapsule(deps.db, capsule.value.id)),
+    );
+  }),
 
   [IPC_CHANNELS.importJson]: defineChannel(
     z.object({ text: textPayload, projectId: idField }),
     (deps, input) => {
       const parsed = parseJsonImport(input.text);
       if (!parsed.ok) return parsed;
-      return toResult(importNormalized(deps.db, input.projectId, normalizeJsonImport(parsed.value)));
+      return toResult(
+        importNormalized(deps.db, input.projectId, normalizeJsonImport(parsed.value)),
+      );
     },
   ),
   [IPC_CHANNELS.importMarkdown]: defineChannel(
@@ -497,7 +500,10 @@ export async function routeIpc(
   if (!spec) {
     return {
       ok: false,
-      error: { code: 'INVALID_CHANNEL', message: `Unknown IPC channel: ${channel}` },
+      error: {
+        code: 'INVALID_CHANNEL',
+        message: `Unknown IPC channel: ${channel}`,
+      },
     };
   }
   const parsed = spec.schema.safeParse(payload);

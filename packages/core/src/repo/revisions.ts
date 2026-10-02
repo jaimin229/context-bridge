@@ -1,6 +1,13 @@
 import type { Database } from 'better-sqlite3';
 import { getTagsForCapsule } from './tags';
-import { err, ok, type AppResult, type Capsule, type CapsuleRevision, type RevisionReason } from '../types';
+import {
+  err,
+  ok,
+  type AppResult,
+  type Capsule,
+  type CapsuleRevision,
+  type RevisionReason,
+} from '../types';
 import { newId, nowIso, parseJsonArray, parseJsonSnapshot } from '../util';
 import type { GitSnapshotInfo } from '../types';
 
@@ -70,8 +77,7 @@ export function listRevisions(db: Database, capsuleId: string): CapsuleRevision[
 
 export function getRevision(db: Database, revisionId: string): AppResult<CapsuleRevision> {
   const row = db.prepare(`${SELECT_REVISION} WHERE id = ?`).get(revisionId) as
-    | RevisionRow
-    | undefined;
+    RevisionRow | undefined;
   if (!row) {
     return err('NOT_FOUND', `Revision not found: ${revisionId}`);
   }

@@ -11,5 +11,11 @@ asarUnpack:
   - '**/node_modules/better-sqlite3/**'
 npmRebuild: false
 win:
+  icon: build/icon.ico
   target:
+    - nsis
     - dir
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  shortcutName: ContextBridge

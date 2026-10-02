@@ -40,9 +40,7 @@ declare global {
     details?: Array<{ field: string; message: string }>;
   }
 
-  type ResultLike<T> =
-    | { ok: true; value: T }
-    | { ok: false; error: AppErrorLike };
+  type ResultLike<T> = { ok: true; value: T } | { ok: false; error: AppErrorLike };
 
   interface HandoffPreviewLike {
     markdown: string;
@@ -81,10 +79,7 @@ declare global {
       list(payload?: { includeArchived?: boolean }): Promise<ResultLike<Project[]>>;
       create(input: ProjectInput): Promise<ResultLike<Project>>;
       update(payload: { id: string; patch: ProjectPatch }): Promise<ResultLike<Project>>;
-      setArchived(payload: {
-        id: string;
-        archived: boolean;
-      }): Promise<ResultLike<Project>>;
+      setArchived(payload: { id: string; archived: boolean }): Promise<ResultLike<Project>>;
     };
 
     capsules: {
@@ -102,15 +97,10 @@ declare global {
       }): Promise<ResultLike<Capsule>>;
       softDelete(payload: { id: string }): Promise<ResultLike<Capsule>>;
       restore(payload: { id: string }): Promise<ResultLike<Capsule>>;
-      setArchived(payload: {
-        id: string;
-        archived: boolean;
-      }): Promise<ResultLike<Capsule>>;
+      setArchived(payload: { id: string; archived: boolean }): Promise<ResultLike<Capsule>>;
       duplicate(payload: { id: string }): Promise<ResultLike<Capsule>>;
       setActiveHandoff(payload: { capsuleId: string }): Promise<ResultLike<Project>>;
-      getActiveHandoff(payload: {
-        projectId: string;
-      }): Promise<ResultLike<Capsule | null>>;
+      getActiveHandoff(payload: { projectId: string }): Promise<ResultLike<Capsule | null>>;
     };
 
     tags: {
@@ -154,10 +144,7 @@ declare global {
 
     settings: {
       list(): Promise<ResultLike<Record<string, unknown>>>;
-      get(payload: {
-        key: string;
-        fallback?: unknown;
-      }): Promise<ResultLike<unknown>>;
+      get(payload: { key: string; fallback?: unknown }): Promise<ResultLike<unknown>>;
       set(payload: { key: string; value: unknown }): Promise<ResultLike<null>>;
     };
 
@@ -167,10 +154,7 @@ declare global {
     };
 
     import: {
-      json(payload: {
-        text: string;
-        projectId: string;
-      }): Promise<ResultLike<Capsule>>;
+      json(payload: { text: string; projectId: string }): Promise<ResultLike<Capsule>>;
       markdown(payload: {
         text: string;
         projectId: string;

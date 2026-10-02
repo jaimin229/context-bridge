@@ -77,7 +77,10 @@ function shortenTo(body: string, length: number): string {
   return `${withoutMarker.slice(0, length)}\n${TRUNCATED}`;
 }
 
-function gitFacts(capsule: Capsule, project: Project): {
+function gitFacts(
+  capsule: Capsule,
+  project: Project,
+): {
   repositoryPath: string;
   branch: string;
   commit: string;
@@ -88,9 +91,7 @@ function gitFacts(capsule: Capsule, project: Project): {
   const repositoryPath =
     project.repositoryPath.trim().length > 0 ? project.repositoryPath.trim() : 'Not configured';
   const branch =
-    capsule.gitBranch.trim() ||
-    snapshot.branch ||
-    (snapshot.detached ? 'detached HEAD' : '');
+    capsule.gitBranch.trim() || snapshot.branch || (snapshot.detached ? 'detached HEAD' : '');
   const headRaw = capsule.gitHead.trim() || snapshot.head || '';
   const commit = headRaw.length > 0 ? headRaw.slice(0, 7) : '';
   const workingTree =
@@ -103,11 +104,7 @@ function gitFacts(capsule: Capsule, project: Project): {
   return { repositoryPath, branch, commit, workingTree, capturedAt };
 }
 
-function withMaster(
-  own: string,
-  masterText: string | null,
-  label: string,
-): string {
+function withMaster(own: string, masterText: string | null, label: string): string {
   if (masterText === null) {
     return own;
   }
@@ -126,16 +123,12 @@ export function buildHandoffSections(
     masterContext && !isMasterItself
       ? {
           goal: compactText(masterContext.goal.trim(), MASTER_CONTEXT_CAP),
-          architecture: compactText(
-            masterContext.architectureNotes.trim(),
-            MASTER_CONTEXT_CAP,
-          ),
+          architecture: compactText(masterContext.architectureNotes.trim(), MASTER_CONTEXT_CAP),
           rules: compactText(masterContext.rulesConstraints.trim(), MASTER_CONTEXT_CAP),
         }
       : null;
 
-  const masterArchitecture =
-    master && master.architecture.length > 0 ? master.architecture : null;
+  const masterArchitecture = master && master.architecture.length > 0 ? master.architecture : null;
   const masterRules = master && master.rules.length > 0 ? master.rules : null;
 
   const repositoryLines = [
@@ -152,12 +145,36 @@ export function buildHandoffSections(
   return [
     { title: 'Project', body: project.name, truncatable: false },
     { title: 'Product Goal', body: content(capsule.goal), truncatable: true },
-    { title: 'Repository', body: repositoryLines.join('\n'), truncatable: false },
-    { title: 'Current Task', body: content(capsule.currentTask), truncatable: true },
-    { title: 'Completed Work', body: content(capsule.completedWork), truncatable: true },
-    { title: 'Files Changed', body: bullets(capsule.changedFiles), truncatable: true },
-    { title: 'Commands Run', body: bullets(capsule.commandsRun), truncatable: true },
-    { title: 'Verification', body: content(capsule.verificationResults), truncatable: true },
+    {
+      title: 'Repository',
+      body: repositoryLines.join('\n'),
+      truncatable: false,
+    },
+    {
+      title: 'Current Task',
+      body: content(capsule.currentTask),
+      truncatable: true,
+    },
+    {
+      title: 'Completed Work',
+      body: content(capsule.completedWork),
+      truncatable: true,
+    },
+    {
+      title: 'Files Changed',
+      body: bullets(capsule.changedFiles),
+      truncatable: true,
+    },
+    {
+      title: 'Commands Run',
+      body: bullets(capsule.commandsRun),
+      truncatable: true,
+    },
+    {
+      title: 'Verification',
+      body: content(capsule.verificationResults),
+      truncatable: true,
+    },
     {
       title: 'Known Issues / Blockers',
       body: content(capsule.knownIssues),
@@ -165,11 +182,7 @@ export function buildHandoffSections(
     },
     {
       title: 'Architecture / Technical Notes',
-      body: withMaster(
-        content(capsule.architectureNotes),
-        masterArchitecture,
-        'Architecture',
-      ),
+      body: withMaster(content(capsule.architectureNotes), masterArchitecture, 'Architecture'),
       truncatable: true,
     },
     {
@@ -177,7 +190,11 @@ export function buildHandoffSections(
       body: withMaster(content(capsule.rulesConstraints), masterRules, 'Rules'),
       truncatable: true,
     },
-    { title: 'Next Exact Task', body: content(capsule.nextTask), truncatable: true },
+    {
+      title: 'Next Exact Task',
+      body: content(capsule.nextTask),
+      truncatable: true,
+    },
   ];
 }
 
@@ -202,10 +219,7 @@ function applyBudget(sections: HandoffSection[], budget: number): void {
       break;
     }
     const target = candidates[0];
-    const nextLength = Math.max(
-      MIN_TRUNCATED_SECTION,
-      Math.floor(target.body.length / 2),
-    );
+    const nextLength = Math.max(MIN_TRUNCATED_SECTION, Math.floor(target.body.length / 2));
     target.body = shortenTo(target.body, nextLength);
     text = assemble(sections, numbered(NEXT_AI_INSTRUCTIONS));
   }

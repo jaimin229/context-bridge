@@ -36,9 +36,7 @@ export default function HandoffPreview({
       requestRef.current = requestId;
       void (async () => {
         try {
-          const preview = await call(
-            window.contextBridgeApi.handoff.draft({ projectId, input }),
-          );
+          const preview = await call(window.contextBridgeApi.handoff.draft({ projectId, input }));
           if (cancelled || requestRef.current !== requestId) return;
           setMarkdown(preview.markdown);
           setTokenEstimate(preview.tokenEstimate);
@@ -70,7 +68,9 @@ export default function HandoffPreview({
         <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
           Handoff preview
         </h2>
-        {loading && <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-500" aria-hidden="true" />}
+        {loading && (
+          <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-500" aria-hidden="true" />
+        )}
         <span
           className="ml-auto rounded border border-slate-700 px-2 py-0.5 font-mono text-[11px] text-slate-400"
           data-testid="token-estimate"

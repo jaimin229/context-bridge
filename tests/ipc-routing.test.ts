@@ -5,12 +5,7 @@ import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { SNIPPET_OPEN } from '../packages/core/src/search/search';
 import { createTestDb, type TestContext } from '../packages/core/tests/helpers';
-import {
-  IPC_CHANNELS,
-  routeIpc,
-  type IpcDeps,
-  type Result,
-} from '../apps/desktop/electron/ipc';
+import { IPC_CHANNELS, routeIpc, type IpcDeps, type Result } from '../apps/desktop/electron/ipc';
 
 interface TestRuntime {
   ctx: TestContext;
@@ -67,8 +62,16 @@ beforeAll(() => {
         value: {
           appVersion: '0.1.0',
           platform: 'win32',
-          probe: { sqliteVersion: '3.50.0', fts5Available: true, fts5QueryWorked: true },
-          security: { contextIsolation: true, nodeIntegration: false, sandbox: true },
+          probe: {
+            sqliteVersion: '3.50.0',
+            fts5Available: true,
+            fts5QueryWorked: true,
+          },
+          security: {
+            contextIsolation: true,
+            nodeIntegration: false,
+            sandbox: true,
+          },
         },
       }),
       copyText: (text) => copied.push(text),
@@ -87,7 +90,9 @@ describe('IPC router integration (real SQLite, real git)', () => {
   let duplicateId = '';
 
   it('routes ping through the injected deps', async () => {
-    const value = await call<{ appVersion: string }>(IPC_CHANNELS.ping, { nonce: 'x' });
+    const value = await call<{ appVersion: string }>(IPC_CHANNELS.ping, {
+      nonce: 'x',
+    });
     expect(value.appVersion).toBe('0.1.0');
   });
 
@@ -96,7 +101,9 @@ describe('IPC router integration (real SQLite, real git)', () => {
   });
 
   it('rejects malformed payloads with INVALID_PAYLOAD and field details', async () => {
-    const result = await routeIpc(runtime.deps, IPC_CHANNELS.capsulesGet, { id: 42 });
+    const result = await routeIpc(runtime.deps, IPC_CHANNELS.capsulesGet, {
+      id: 42,
+    });
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.code).toBe('INVALID_PAYLOAD');
@@ -134,14 +141,18 @@ describe('IPC router integration (real SQLite, real git)', () => {
   });
 
   it('updates a capsule and records a manual-save revision', async () => {
-    const updated = await call<{ goal: string; version: number; status: string }>(
-      IPC_CHANNELS.capsulesUpdate,
-      {
-        id: capsuleId,
-        patch: { goal: 'Updated goal with uniqueflavour wording', status: 'Active' },
-        reason: 'manual-save',
+    const updated = await call<{
+      goal: string;
+      version: number;
+      status: string;
+    }>(IPC_CHANNELS.capsulesUpdate, {
+      id: capsuleId,
+      patch: {
+        goal: 'Updated goal with uniqueflavour wording',
+        status: 'Active',
       },
-    );
+      reason: 'manual-save',
+    });
     expect(updated.goal).toBe('Updated goal with uniqueflavour wording');
     expect(updated.status).toBe('Active');
 
@@ -158,13 +169,18 @@ describe('IPC router integration (real SQLite, real git)', () => {
       IPC_CHANNELS.handoffDraft,
       {
         projectId,
-        input: { title: 'Draft only', goal: 'draftgoalz appears only in preview' },
+        input: {
+          title: 'Draft only',
+          goal: 'draftgoalz appears only in preview',
+        },
       },
     );
     expect(draft.markdown).toContain('draftgoalz appears only in preview');
     expect(draft.tokenEstimate).toBeGreaterThan(0);
 
-    const saved = await call<{ goal: string }>(IPC_CHANNELS.capsulesGet, { id: capsuleId });
+    const saved = await call<{ goal: string }>(IPC_CHANNELS.capsulesGet, {
+      id: capsuleId,
+    });
     expect(saved.goal).not.toContain('draftgoalz appears only in preview');
   });
 
@@ -179,14 +195,19 @@ describe('IPC router integration (real SQLite, real git)', () => {
     const outcome = await call<{
       hits: Array<{ id: string; snippet: string }>;
       total: number;
-    }>(IPC_CHANNELS.searchQuery, { query: 'uniqueflavour', filter: { projectId } });
+    }>(IPC_CHANNELS.searchQuery, {
+      query: 'uniqueflavour',
+      filter: { projectId },
+    });
     expect(outcome.total).toBeGreaterThanOrEqual(1);
     expect(outcome.hits[0].id).toBe(capsuleId);
     expect(outcome.hits[0].snippet).toContain(SNIPPET_OPEN);
   });
 
   it('creates tags and attaches them to a capsule', async () => {
-    const tag = await call<{ name: string }>(IPC_CHANNELS.tagsCreate, { name: 'Handoff' });
+    const tag = await call<{ name: string }>(IPC_CHANNELS.tagsCreate, {
+      name: 'Handoff',
+    });
     expect(tag.name).toBe('handoff');
 
     await call(IPC_CHANNELS.capsulesUpdate, {
@@ -205,7 +226,9 @@ describe('IPC router integration (real SQLite, real git)', () => {
     const parsed = JSON.parse(json) as { capsule: { title: string } };
     expect(parsed.capsule.title).toBe('Session One');
 
-    const markdown = await call<string>(IPC_CHANNELS.exportMarkdown, { capsuleId });
+    const markdown = await call<string>(IPC_CHANNELS.exportMarkdown, {
+      capsuleId,
+    });
     expect(markdown).toContain('contextbridge: 1');
     expect(markdown).toContain('# Project Handoff');
 
@@ -225,7 +248,10 @@ describe('IPC router integration (real SQLite, real git)', () => {
   });
 
   it('stores and reads settings', async () => {
-    await call(IPC_CHANNELS.settingsSet, { key: 'handoff.tokenBudget', value: 4321 });
+    await call(IPC_CHANNELS.settingsSet, {
+      key: 'handoff.tokenBudget',
+      value: 4321,
+    });
     const value = await call<unknown>(IPC_CHANNELS.settingsGet, {
       key: 'handoff.tokenBudget',
       fallback: 0,
@@ -253,10 +279,11 @@ describe('IPC router integration (real SQLite, real git)', () => {
   });
 
   it('captures a real git snapshot', async () => {
-    const snapshot = await call<{ head: string; branch: string; workingTreeClean: boolean }>(
-      IPC_CHANNELS.gitCapture,
-      { repositoryPath: runtime.repoDir },
-    );
+    const snapshot = await call<{
+      head: string;
+      branch: string;
+      workingTreeClean: boolean;
+    }>(IPC_CHANNELS.gitCapture, { repositoryPath: runtime.repoDir });
     expect(snapshot.head).toHaveLength(40);
     expect(snapshot.branch).toBe('main');
     expect(snapshot.workingTreeClean).toBe(true);
@@ -268,7 +295,11 @@ describe('IPC router integration (real SQLite, real git)', () => {
     });
     const updated = await call<{ gitHead: string }>(IPC_CHANNELS.capsulesUpdate, {
       id: capsuleId,
-      patch: { gitHead: snapshot.head, gitBranch: snapshot.branch, gitSnapshot: snapshot },
+      patch: {
+        gitHead: snapshot.head,
+        gitBranch: snapshot.branch,
+        gitSnapshot: snapshot,
+      },
       reason: 'manual-save',
     });
     expect(updated.gitHead).toBe(snapshot.head);
@@ -305,14 +336,16 @@ describe('IPC router integration (real SQLite, real git)', () => {
     expect(duplicate.id).not.toBe(capsuleId);
     expect(duplicate.title).toContain('Session One');
 
-    const archived = await call<{ archivedAt: string | null }>(
-      IPC_CHANNELS.capsulesSetArchived,
-      { id: duplicateId, archived: true },
-    );
+    const archived = await call<{ archivedAt: string | null }>(IPC_CHANNELS.capsulesSetArchived, {
+      id: duplicateId,
+      archived: true,
+    });
     expect(archived.archivedAt).not.toBeNull();
 
     await call(IPC_CHANNELS.capsulesSoftDelete, { id: duplicateId });
-    const gone = await routeIpc(runtime.deps, IPC_CHANNELS.capsulesGet, { id: duplicateId });
+    const gone = await routeIpc(runtime.deps, IPC_CHANNELS.capsulesGet, {
+      id: duplicateId,
+    });
     expect(gone.ok).toBe(false);
 
     const restored = await call<{ deletedAt: string | null }>(IPC_CHANNELS.capsulesRestore, {
@@ -322,16 +355,8 @@ describe('IPC router integration (real SQLite, real git)', () => {
   });
 
   it('surfaces core domain errors with their original codes', async () => {
-    await expectErrorCode(
-      IPC_CHANNELS.capsulesGet,
-      { id: 'no-such-capsule' },
-      'NOT_FOUND',
-    );
-    await expectErrorCode(
-      IPC_CHANNELS.projectsCreate,
-      { name: '' },
-      'VALIDATION',
-    );
+    await expectErrorCode(IPC_CHANNELS.capsulesGet, { id: 'no-such-capsule' }, 'NOT_FOUND');
+    await expectErrorCode(IPC_CHANNELS.projectsCreate, { name: '' }, 'VALIDATION');
     await expectErrorCode(IPC_CHANNELS.gitCapture, { repositoryPath: '' }, 'INVALID_PAYLOAD');
     await expectErrorCode(
       IPC_CHANNELS.gitCapture,

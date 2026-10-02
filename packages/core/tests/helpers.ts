@@ -4,12 +4,7 @@ import { join } from 'node:path';
 import type { Database } from 'better-sqlite3';
 import { openDatabase, runMigrations } from '../src/index';
 
-export const MIGRATIONS_DIR = join(
-  process.cwd(),
-  'packages',
-  'core',
-  'migrations',
-);
+export const MIGRATIONS_DIR = join(process.cwd(), 'packages', 'core', 'migrations');
 
 export interface TestContext {
   db: Database;

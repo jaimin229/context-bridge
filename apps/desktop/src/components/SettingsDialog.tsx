@@ -7,7 +7,10 @@ interface SettingsDialogProps {
   notify: (message: string) => void;
 }
 
-export default function SettingsDialog({ onClose, notify }: SettingsDialogProps): React.ReactElement {
+export default function SettingsDialog({
+  onClose,
+  notify,
+}: SettingsDialogProps): React.ReactElement {
   const [budget, setBudget] = useState<string>('');
   const [compact, setCompact] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -40,7 +43,12 @@ export default function SettingsDialog({ onClose, notify }: SettingsDialogProps)
     }
     setError(null);
     try {
-      await call(window.contextBridgeApi.settings.set({ key: 'handoff.tokenBudget', value: parsed }));
+      await call(
+        window.contextBridgeApi.settings.set({
+          key: 'handoff.tokenBudget',
+          value: parsed,
+        }),
+      );
       notify('Token budget saved');
     } catch (err) {
       setError(errorMessage(err));
@@ -50,7 +58,12 @@ export default function SettingsDialog({ onClose, notify }: SettingsDialogProps)
   async function saveCompact(next: boolean): Promise<void> {
     setCompact(next);
     try {
-      await call(window.contextBridgeApi.settings.set({ key: 'handoff.compact', value: next }));
+      await call(
+        window.contextBridgeApi.settings.set({
+          key: 'handoff.compact',
+          value: next,
+        }),
+      );
       notify(next ? 'Compact preview enabled' : 'Compact preview disabled');
     } catch (err) {
       setError(errorMessage(err));
@@ -116,7 +129,10 @@ export default function SettingsDialog({ onClose, notify }: SettingsDialogProps)
           </section>
 
           {error && (
-            <p role="alert" className="mt-4 rounded-lg border border-rose-900/60 bg-rose-950/50 px-3 py-2 text-xs text-rose-300">
+            <p
+              role="alert"
+              className="mt-4 rounded-lg border border-rose-900/60 bg-rose-950/50 px-3 py-2 text-xs text-rose-300"
+            >
               {error}
             </p>
           )}

@@ -1,7 +1,12 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { CAPSULE_STATUSES, CAPSULE_TYPES, SNIPPET_CLOSE, SNIPPET_OPEN } from '../packages/core/src/index';
+import {
+  CAPSULE_STATUSES,
+  CAPSULE_TYPES,
+  SNIPPET_CLOSE,
+  SNIPPET_OPEN,
+} from '../packages/core/src/index';
 import { IPC_CHANNELS } from '../apps/desktop/electron/ipc';
 
 const ROOT = process.cwd();

@@ -1,0 +1,59 @@
+
+> contextbridge@0.1.0 test:e2e
+> npm run build && playwright test
+
+
+> contextbridge@0.1.0 prebuild
+> npm run build --workspace @contextbridge/core
+
+
+> @contextbridge/core@0.1.0 build
+> tsc -p tsconfig.build.json
+
+
+> contextbridge@0.1.0 build
+> npm run build --workspace @contextbridge/desktop
+
+
+> @contextbridge/desktop@0.1.0 build
+> npm run build:electron && npm run build:renderer
+
+
+> @contextbridge/desktop@0.1.0 build:electron
+> tsc -p tsconfig.electron.json && node ../../scripts/copy-migrations.mjs
+
+[copy-migrations] copied C:\Users\jaimi\OneDrive\Desktop\context bridge\packages\core\migrations -> C:\Users\jaimi\OneDrive\Desktop\context bridge\apps\desktop\dist-electron\migrations
+
+> @contextbridge/desktop@0.1.0 build:renderer
+> vite build
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (electron/csp.ts:7:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+[36mvite v8.3.2 [32mbuilding client environment for production...[36m[39m
+transforming...
+Γ£ô 1897 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.77 kB Γöé gzip:  0.40 kB
+dist/assets/index-B_UBLtCE.css   26.73 kB Γöé gzip:  6.19 kB
+dist/assets/index-BnvWc1v1.js   281.67 kB Γöé gzip: 83.59 kB
+
+[32mΓ£ô built in 227ms[39m
+[WebServer] (!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+[WebServer]   - ESM syntax in a file loaded as CommonJS (electron/csp.ts:7:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+[WebServer] Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+Running 6 tests using 1 worker
+
+  Γ£ô  1 tests\e2e\launch.spec.ts:10:7 ΓÇ║ S0 Electron launch proof ΓÇ║ development mode: loads from Vite dev server with all checks passing (735ms)
+  Γ£ô  2 tests\e2e\launch.spec.ts:29:7 ΓÇ║ S0 Electron launch proof ΓÇ║ production content loading: loads file:// renderer with all checks passing (588ms)
+  Γ£ô  3 tests\e2e\launch.spec.ts:48:7 ΓÇ║ S0 Electron launch proof ΓÇ║ packaged Windows app: window launches from win-unpacked with all checks passing (641ms)
+  Γ£ô  4 tests\e2e\usability.spec.ts:10:7 ΓÇ║ S4 usability ΓÇ║ first handoff in 6 interactions under 60 seconds, active handoff surfaced (1.4s)
+  Γ£ô  5 tests\e2e\workspace.spec.ts:27:7 ΓÇ║ S3 workspace and workflows ΓÇ║ project ΓåÆ capsule ΓåÆ live preview ΓåÆ save ΓåÆ search ΓåÆ export ΓåÆ settings ΓåÆ import ΓåÆ delete/undo (3.4s)
+warning: in the working copy of 'main.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'main.ts', LF will be replaced by CRLF the next time Git touches it
+
+  Γ£ô  6 tests\e2e\workspace.spec.ts:114:7 ΓÇ║ S3 workspace and workflows ΓÇ║ git capture and drift detection on a real repository (2.6s)
+
+  6 passed (11.0s)

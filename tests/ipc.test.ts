@@ -86,9 +86,7 @@ describe('preload allowlist', () => {
   });
 
   it('invokes every registered channel with a literal allowlisted string', () => {
-    const code = preloadSource
-      .replace(/\/\*[\s\S]*?\*\//g, '')
-      .replace(/^\s*\/\/.*$/gm, '');
+    const code = preloadSource.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
     const literals = [...code.matchAll(/ipcRenderer\.invoke\(\s*'([^']+)'/g)].map((m) => m[1]);
     expect(literals.length).toBeGreaterThan(0);
     const allowlist = new Set<string>(Object.values(IPC_CHANNELS));
@@ -100,9 +98,7 @@ describe('preload allowlist', () => {
   });
 
   it('never passes a dynamic channel to invoke (no generic passthrough)', () => {
-    const code = preloadSource
-      .replace(/\/\*[\s\S]*?\*\//g, '')
-      .replace(/^\s*\/\/.*$/gm, '');
+    const code = preloadSource.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
     const dynamic = [...code.matchAll(/ipcRenderer\.invoke\(([^'])/g)];
     expect(dynamic).toHaveLength(0);
     expect(code).not.toMatch(/invoke\s*\(\s*channel/);

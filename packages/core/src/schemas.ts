@@ -107,9 +107,7 @@ export const exportDocumentSchema = z.object({
 });
 export type ExportDocument = z.infer<typeof exportDocumentSchema>;
 
-export function formatZodIssues(
-  error: z.ZodError,
-): Array<{ field: string; message: string }> {
+export function formatZodIssues(error: z.ZodError): Array<{ field: string; message: string }> {
   return error.issues.map((issue) => ({
     field: issue.path.length > 0 ? issue.path.join('.') : '(root)',
     message: issue.message,

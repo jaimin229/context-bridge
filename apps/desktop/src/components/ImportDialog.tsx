@@ -32,16 +32,12 @@ export default function ImportDialog({
     setError(null);
     try {
       if (trimmed.startsWith('{')) {
-        const capsule = await call(
-          window.contextBridgeApi.import.json({ text, projectId }),
-        );
+        const capsule = await call(window.contextBridgeApi.import.json({ text, projectId }));
         onImported(capsule);
         notify('Imported capsule from JSON');
         onClose();
       } else {
-        const outcome = await call(
-          window.contextBridgeApi.import.markdown({ text, projectId }),
-        );
+        const outcome = await call(window.contextBridgeApi.import.markdown({ text, projectId }));
         onImported(outcome.capsule);
         notify(outcome.message ?? 'Imported capsule from Markdown');
         onClose();
@@ -115,7 +111,10 @@ export default function ImportDialog({
             aria-label="Import content"
           />
           {error && (
-            <p role="alert" className="mt-2 rounded-lg border border-rose-900/60 bg-rose-950/50 px-3 py-2 text-xs text-rose-300">
+            <p
+              role="alert"
+              className="mt-2 rounded-lg border border-rose-900/60 bg-rose-950/50 px-3 py-2 text-xs text-rose-300"
+            >
               {error}
             </p>
           )}

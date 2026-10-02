@@ -1,0 +1,22 @@
+
+> contextbridge@0.1.0 smoke:packaged
+> node scripts/smoke-packaged.mjs
+
+[smoke] launching packaged app: C:\Users\jaimi\OneDrive\Desktop\context bridge\apps\desktop\release\win-unpacked\ContextBridge.exe
+
+[contextbridge-smoke] {"ok":true,"probe":{"sqliteVersion":"3.53.4","fts5Available":true,"fts5QueryWorked":true},"versions":{"electron":"44.5.1","node":"24.21.0","chrome":"152.0.7977.130"}}
+[smoke] result:
+{
+  "ok": true,
+  "probe": {
+    "sqliteVersion": "3.53.4",
+    "fts5Available": true,
+    "fts5QueryWorked": true
+  },
+  "versions": {
+    "electron": "44.5.1",
+    "node": "24.21.0",
+    "chrome": "152.0.7977.130"
+  }
+}
+[smoke] PASS: SQLite + FTS5 work inside the packaged app.

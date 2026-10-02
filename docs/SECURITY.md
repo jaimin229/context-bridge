@@ -1,6 +1,6 @@
 # SECURITY.md
 
-Status: S0 scope. Items marked "planned" land in later slices.
+Status: S0-S4 controls implemented. Items marked "planned" land in later work.
 
 ## Electron hardening (implemented in S0)
 
@@ -36,16 +36,22 @@ Development policy additionally allows `'unsafe-inline'` in `script-src` and
 script and opens a WebSocket. This relaxation exists only while
 `CONTEXTBRIDGE_DEV_SERVER` is set.
 
-## IPC (implemented in S0)
+## IPC (implemented in S0, full registry in S3)
 
-- Explicit allowlist of typed channels; only `contextbridge:ping` in S0.
-- Preload exposes fixed functions only — never a generic
+- One explicit registry of 33 typed channels (`electron/ipc.ts`); every
+  channel has its own Zod request schema.
+- Preload exposes fixed named methods only - never a generic
   `ipcRenderer.invoke(channel, payload)` passthrough.
-- Every IPC payload is validated with Zod in the main process.
-- Handlers return typed `Result<T, AppError>`-shaped responses; raw errors are
-  not leaked to the renderer.
-- Renderer never supplies filesystem paths (folder dialogs come from main
-  process dialogs after explicit user action — planned S3).
+- Main validates each payload with Zod (`INVALID_PAYLOAD` on failure), checks
+  the trusted sender frame, and contains handler exceptions (`INTERNAL`
+  without leaking raw errors). Unknown channels map to `INVALID_CHANNEL`.
+- Handlers return `AppResult<T, AppError>`; the renderer unwraps through
+  `src/api.ts`.
+- Renderer never supplies filesystem paths (repository paths are plain
+  strings the user types; clipboard writes go through main).
+- Contract tests: `tests/ipc.test.ts` (preload allowlist),
+  `tests/ipc-contract.test.ts` (preload == registry, renderer mirrors ==
+  core values), `tests/ipc-routing.test.ts` (20 routing scenarios).
 
 ## Forbidden code patterns (enforced by test)
 
@@ -54,26 +60,50 @@ script and opens a WebSocket. This relaxation exists only while
 - `eval(`
 - `new Function(`
 - `dangerouslySetInnerHTML`
+- `exec(` / `execSync(` (shell execution); `execFile(` with an argument
+  array is the only allowed form and is used for git
 
-## SQLite / data (planned S1)
+## SQLite / data (implemented in S1)
 
-- Database under Electron `userData`, WAL mode, foreign keys ON.
-- Backup before migrations.
+- Database under Electron `userData` (`contextbridge.db`), or under
+  `CONTEXTBRIDGE_DATA_DIR` when set (E2E isolation).
+- Pragmas: `foreign_keys = ON`, `journal_mode = WAL`, `busy_timeout = 5000`.
+- Migration runner takes a `VACUUM INTO` backup before applying pending
+  migrations; each migration applies in a transaction with rollback.
 - No telemetry, analytics, or crash reporters.
 
-## Secret handling (planned S2)
+## Renderer content (implemented in S3)
 
-- Deterministic local secret scanner before save/copy/export/import.
-- Findings contain field name, pattern id, and count only — matched text is
-  never logged, displayed, or exported.
+- `MarkdownView` parses handoff markdown structurally (headings, lists, code
+  fences, inline emphasis) - no raw HTML sinks, no `dangerouslySetInnerHTML`.
+- FTS snippets use the U+0002/U+0003 control markers that are stripped or
+  highlighted in JavaScript, never interpreted as markup.
 
-## Network
+## Secret handling (implemented in S2, surfaced in S3)
+
+- Deterministic offline scanner (`scanSecrets`, 8 rules: private key blocks,
+  AWS/GitHub/Slack tokens, JWTs, URL credentials, credential assignments).
+- Findings are always redacted (D14) - matched text is never logged,
+  displayed, exported, or written to evidence.
+- Saving a capsule runs the scanner first; findings open a confirm dialog
+  (masked values only) before anything is persisted.
+
+## Git (implemented in S2)
+
+- Read-only, `execFile` with argument arrays only, strict subcommand
+  allowlist, repository path used only as `cwd`, 10s timeout, 8 MB buffer.
+- Captures status/branch/HEAD metadata and changed file *names* only -
+  never file contents, never diffs.
+- Failures map to typed errors (`GIT_UNAVAILABLE`, `NOT_FOUND`, `VALIDATION`).
+
+## Network (enforced by rule)
 
 - The production app makes no outbound network requests (AGENTS.md rule 10).
 - Dependency installation during development is allowed.
 
-## Git (planned S2)
+## Packaging (implemented in S4)
 
-- Read-only, `execFile` with argument arrays only, strict command allowlist,
-  10s timeout, 1 MB output cap, credentials stripped from remote URLs,
-  no diff or file content reads in V1.
+- App icon generated locally by `scripts/make-icon.mjs` (no external assets).
+- NSIS installer (`ContextBridge Setup <v>.exe`) built by electron-builder
+  from `electron-builder.yml`; `npmRebuild: false` and a pinned lockfile keep
+  builds reproducible.

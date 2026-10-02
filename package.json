@@ -19,7 +19,8 @@
     "prebuild": "npm run build --workspace @contextbridge/core",
     "build": "npm run build --workspace @contextbridge/desktop",
     "package:dir": "npm run build && npm run package:dir --workspace @contextbridge/desktop",
-    "smoke:packaged": "node scripts/smoke-packaged.mjs"
+    "smoke:packaged": "node scripts/smoke-packaged.mjs",
+    "package:installer": "npm run build && npm run package --workspace @contextbridge/desktop"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

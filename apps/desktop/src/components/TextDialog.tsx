@@ -41,7 +41,11 @@ export default function TextDialog({ title, text, onClose }: TextDialogProps): R
               className="flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-slate-800"
               data-testid="dialog-copy"
             >
-              {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+              {copied ? (
+                <Check className="h-3.5 w-3.5 text-emerald-400" />
+              ) : (
+                <Copy className="h-3.5 w-3.5" />
+              )}
               {copied ? 'Copied' : 'Copy'}
             </button>
             <button
@@ -55,7 +59,10 @@ export default function TextDialog({ title, text, onClose }: TextDialogProps): R
           </div>
         </header>
         {error && (
-          <p role="alert" className="border-b border-rose-900/50 bg-rose-950/40 px-5 py-2 text-xs text-rose-300">
+          <p
+            role="alert"
+            className="border-b border-rose-900/50 bg-rose-950/40 px-5 py-2 text-xs text-rose-300"
+          >
             {error}
           </p>
         )}

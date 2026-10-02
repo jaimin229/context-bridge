@@ -12,13 +12,7 @@ export const CAPSULE_TYPES = [
 ] as const;
 export type CapsuleType = (typeof CAPSULE_TYPES)[number];
 
-export const CAPSULE_STATUSES = [
-  'Draft',
-  'Active',
-  'Verified',
-  'Deprecated',
-  'Archived',
-] as const;
+export const CAPSULE_STATUSES = ['Draft', 'Active', 'Verified', 'Deprecated', 'Archived'] as const;
 export type CapsuleStatus = (typeof CAPSULE_STATUSES)[number];
 
 export interface GitSnapshotInfo {
@@ -83,12 +77,7 @@ export interface Tag {
 }
 
 export type RevisionReason =
-  | 'create'
-  | 'manual-save'
-  | 'copy-handoff'
-  | 'import'
-  | 'status-change'
-  | 'duplicate';
+  'create' | 'manual-save' | 'copy-handoff' | 'import' | 'status-change' | 'duplicate';
 
 export interface CapsuleRevision {
   id: string;
@@ -100,12 +89,7 @@ export interface CapsuleRevision {
 }
 
 export type AppErrorCode =
-  | 'NOT_FOUND'
-  | 'VALIDATION'
-  | 'CONFLICT'
-  | 'INVALID_STATE'
-  | 'GIT_UNAVAILABLE'
-  | 'INTERNAL';
+  'NOT_FOUND' | 'VALIDATION' | 'CONFLICT' | 'INVALID_STATE' | 'GIT_UNAVAILABLE' | 'INTERNAL';
 
 export interface AppError {
   code: AppErrorCode;
@@ -124,5 +108,7 @@ export function err<T>(
   message: string,
   details?: Array<{ field: string; message: string }>,
 ): AppResult<T> {
-  return details ? { ok: false, error: { code, message, details } } : { ok: false, error: { code, message } };
+  return details
+    ? { ok: false, error: { code, message, details } }
+    : { ok: false, error: { code, message } };
 }

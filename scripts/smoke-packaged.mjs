@@ -46,7 +46,12 @@ child.on('exit', (code) => {
   const result = JSON.parse(readFileSync(outPath, 'utf8'));
   console.log('[smoke] result:');
   console.log(JSON.stringify(result, null, 2));
-  if (code === 0 && result.ok === true && result.probe?.fts5Available === true && result.probe?.fts5QueryWorked === true) {
+  if (
+    code === 0 &&
+    result.ok === true &&
+    result.probe?.fts5Available === true &&
+    result.probe?.fts5QueryWorked === true
+  ) {
     console.log('[smoke] PASS: SQLite + FTS5 work inside the packaged app.');
     process.exit(0);
   }

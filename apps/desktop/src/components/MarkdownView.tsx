@@ -202,10 +202,7 @@ function parseBlocks(markdown: string): Block[] {
       blocks.push({
         key: `b${key}`,
         node: (
-          <ol
-            key={`b${key}`}
-            className="list-decimal space-y-1 pl-5 text-sm text-slate-300"
-          >
+          <ol key={`b${key}`} className="list-decimal space-y-1 pl-5 text-sm text-slate-300">
             {items.map((item, idx) => (
               <li key={idx}>{renderInline(item)}</li>
             ))}

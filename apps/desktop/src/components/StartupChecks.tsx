@@ -11,9 +11,24 @@ interface Check {
 }
 
 const initialChecks: Check[] = [
-  { key: 'ipc', label: 'Typed IPC bridge', status: 'loading', detail: 'Contacting main process…' },
-  { key: 'sqlite', label: 'SQLite storage', status: 'loading', detail: 'Opening local database…' },
-  { key: 'fts5', label: 'FTS5 full-text search', status: 'loading', detail: 'Running probe query…' },
+  {
+    key: 'ipc',
+    label: 'Typed IPC bridge',
+    status: 'loading',
+    detail: 'Contacting main process…',
+  },
+  {
+    key: 'sqlite',
+    label: 'SQLite storage',
+    status: 'loading',
+    detail: 'Opening local database…',
+  },
+  {
+    key: 'fts5',
+    label: 'FTS5 full-text search',
+    status: 'loading',
+    detail: 'Running probe query…',
+  },
   {
     key: 'security',
     label: 'Electron isolation',
@@ -51,7 +66,9 @@ export default function StartupChecks(): React.ReactElement {
 
     async function run(): Promise<void> {
       try {
-        const result = await window.contextBridgeApi.ping({ nonce: 'startup-checks' });
+        const result = await window.contextBridgeApi.ping({
+          nonce: 'startup-checks',
+        });
         if (!result.ok) {
           update('ipc', 'error', `Bridge error: ${result.error.code}`);
           update('sqlite', 'error', 'Not reachable');
@@ -80,9 +97,7 @@ export default function StartupChecks(): React.ReactElement {
         update(
           'security',
           isolated ? 'ok' : 'error',
-          isolated
-            ? 'contextIsolation · no nodeIntegration · sandbox'
-            : 'Security flags weakened',
+          isolated ? 'contextIsolation · no nodeIntegration · sandbox' : 'Security flags weakened',
         );
       } catch (err) {
         update('ipc', 'error', err instanceof Error ? err.message : 'Unknown error');

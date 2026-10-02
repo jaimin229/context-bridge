@@ -50,9 +50,13 @@ await spawnAndWait(
 );
 
 console.log('[dev] building main process + preload (tsc)…');
-await spawnAndWait(process.execPath, [tscBin, '-p', path.join(desktopDir, 'tsconfig.electron.json')], {
-  cwd: rootDir,
-});
+await spawnAndWait(
+  process.execPath,
+  [tscBin, '-p', path.join(desktopDir, 'tsconfig.electron.json')],
+  {
+    cwd: rootDir,
+  },
+);
 
 console.log('[dev] copying migrations…');
 await spawnAndWait(process.execPath, [path.join(rootDir, 'scripts', 'copy-migrations.mjs')], {

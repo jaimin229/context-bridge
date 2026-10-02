@@ -2,135 +2,105 @@
 
 ## Current slice
 
-**S3 - Electron UI and workflows - GATE PASSED (2026-10-02)**
+**S4 - Polish and release - GATE PASSED (2026-10-02)**
 
-## Completed work (S0, committed `f617eba`)
+All slices (S0, S1, S2, S3, S4) are complete. Gate report for S4 is in the
+verification table below; raw command output is under `evidence/S4/`.
+
+## Completed work (S0, commit `f617eba`)
 
 - npm workspaces monorepo (`packages/core`, `apps/desktop`), exact-pinned deps,
   `package-lock.json` committed.
-- Strict TypeScript configs; ESLint flat config; Prettier; Vitest; Playwright
-  (`_electron`) configs.
-- Operating docs: `AGENTS.md`, `PROGRESS.md`, `docs/DECISIONS.md`,
-  `docs/VERSIONS.md`, `docs/ARCHITECTURE.md`, `docs/SECURITY.md`, `README.md`.
-- Secure Electron `BrowserWindow` (contextIsolation, no nodeIntegration, sandbox,
-  denied navigation/window-open/permissions/webview, header + meta CSP from one
-  shared module). Typed preload bridge with one Zod-validated IPC channel.
-- `better-sqlite3` + FTS5 in main; packaged `--smoke-test` mode; dev launcher;
-  security repo scan test; S0 proof UI.
-- Evidence: `evidence/S0/` (lint, typecheck, 15/15 tests, 3/3 e2e, build,
-  package, packaged smoke, dev run, screenshots).
+- Strict TypeScript, ESLint flat config, Prettier, Vitest, Playwright configs;
+  operating docs (`AGENTS.md`, `docs/*`).
+- Secure Electron `BrowserWindow` (contextIsolation, no nodeIntegration,
+  sandbox, denied navigation/window-open/permissions/webview, shared CSP).
+- `better-sqlite3` + FTS5 proof, packaged `--smoke-test`, dev launcher,
+  security repo scan test, S0 proof UI.
+- Evidence: `evidence/S0/`.
 
-## Completed work (S1)
+## Completed work (S1, commit `9c914f2`)
 
-- Migration runner (`runMigrations`): `schema_migrations`, `VACUUM INTO` backup
-  before pending migrations, transactional apply with rollback, malformed
-  `.sql` file names throw (never silently skipped).
-- Migration `001_initial.sql`: projects, capsules (CHECK enums), tags,
-  capsule_tags, capsule_revisions, app_settings, indices, `capsules_fts`
-  external-content FTS5 + `capsules_fts_ai/ad/au` triggers.
-- Zod schemas (`schemas.ts`) and types (`types.ts`) with `AppResult`/`ok`/`err`.
-- Repositories: projects, capsules (create/update/list/filters/soft
-  delete/restore/archive/duplicate/set+get Active Handoff), tags (normalized,
-  unsafe-character rejection, link replacement), revisions (snapshot-based skip,
-  cap 50, initial revision does not bump version - D10), settings.
-- Handoff generator: exact heading order, `_Not provided._` placeholders,
-  drift note, Master Context embed, compact mode with `[truncated]` markers and
-  token budget (default 8000, ceil(len/4) estimator).
-- I/O: deterministic JSON export, deterministic `***` Markdown front matter
-  (extended with `git_snapshot` - D9), JSON + Markdown import (structured and
-  plain-notes), ID-collision handling via `imported_original_id`, atomic
-  `importNormalized`.
-- 95 unit/integration tests against real temporary SQLite databases (11 files).
+- Migration runner (`schema_migrations`, `VACUUM INTO` backup, transactional
+  apply, malformed file names throw) + `001_initial.sql` (all tables, indices,
+  external-content `capsules_fts` with triggers).
+- Zod schemas, types with `AppResult`/`ok`/`err`, repositories (projects,
+  capsules incl. soft delete/archive/duplicate/Active Handoff, tags,
+  revisions with 50-cap, settings), handoff generator (exact heading order,
+  compact mode, 8000-token default budget), deterministic JSON/Markdown
+  export + import with ID-collision handling.
+- 95 unit/integration tests on real temporary SQLite.
 
-## Completed work (S2)
+## Completed work (S2, commit `ac0068e`)
 
-- Git capture (`captureGitSnapshot`): allowlisted `git` subcommands only
-  (no shell, no caller-supplied arguments, repository path is `cwd` only),
-  async `execFile` with 10s timeout and 8MB buffer. Captures repository root,
-  HEAD, branch/detached state, and staged/unstaged/untracked file names from
-  `git status --porcelain=v1 -z` (never file contents). Handles unborn HEAD,
-  nested subdirectories, and maps failures to VALIDATION/NOT_FOUND/
-  GIT_UNAVAILABLE (new error code, D12).
-- Porcelain `-z` parser (`parsePorcelainStatus`) with rename/copy handling.
-- Drift detection (`detectDrift`): head-changed, branch-changed,
-  working-tree-changed, repository-unavailable; order-insensitive file set
-  comparison; no baseline means no drift claim.
-- FTS5 search (`searchCapsules`): every user term quoted so operators are
-  literal (D13), phrase queries, prefix on final term, filters (project, type,
-  status, tags, archived, deleted), pagination with stable total, snippet
-  markers (U+0002/U+0003 control characters) with title fallback, VALIDATION
-  for empty/over-long queries. Hostile-query suite passes without data mutation.
-- Secret scanner (`scanSecrets`): 8 offline rules (private key blocks, AWS,
-  GitHub, Slack, JWT, URL credentials, credential assignments); findings are
-  redacted (D14) with line/column positions.
+- Git capture (`execFile` + allowlist, 10s/8MB, unborn HEAD, porcelain `-z`
+  parser) and drift detection (head/branch/working-tree/unavailable),
+  `GIT_UNAVAILABLE` error code (D12).
+- FTS5 search with quoted operators (D13), pagination, snippet markers,
+  hostile-query suite; 8-rule secret scanner with always-redacted findings
+  (D14).
 
-## Completed work (S3)
+## Completed work (S3, commit `8057cc2`)
 
-- Core packaging (D15): `packages/core/tsconfig.build.json` builds CJS +
-  declarations to `packages/core/dist`; core `main`/`types` point at dist;
-  root `pretypecheck`/`prebuild` and `scripts/dev.mjs` build core first.
-  `apps/desktop` declares `@contextbridge/core` as a dependency so the
-  packaged asar contains it.
-- Migrations bundling (D16): `scripts/copy-migrations.mjs` copies
-  `packages/core/migrations/*.sql` into `dist-electron/migrations` during
-  every electron build/dev run; main resolves via `__dirname`; startup opens
-  the DB, runs migrations, and only then creates the window (failure =
-  native error dialog + exit 1).
-- Data dir isolation (D17): `CONTEXTBRIDGE_DATA_DIR` overrides the database
-  directory; every e2e launch uses a fresh temp directory.
-- Typed IPC registry (D18): 33 channels in `electron/ipc.ts`
-  (projects, capsules incl. Active Handoff, tags, revisions, search,
-  handoff draft/render, git capture/drift, secrets scan, settings, export,
-  import, clipboard, ping) with per-channel Zod schemas, `AppResult` mapping,
-  and exception containment in `routeIpc`. Main registers every channel with
-  the trusted-sender check against one shared better-sqlite3 handle.
-- Preload: fixed named methods per group (no generic invoke); contract tests
-  assert preload literal channels == registry and renderer mirror constants
-  == core values (snippet markers, capsule type/status lists).
-- Renderer: `api.ts` Result unwrapper; `StartupChecks` (S0 markup preserved);
-  onboarding (project create with checks); workspace shell (project header,
-  capsule sidebar with status/archived filters, active-handoff badge, toasts
-  with Undo); `CapsuleEditor` (Simple/Advanced fields, tags, save with secret
-  scan confirm dialog, copy handoff, MD/JSON export dialogs, revision history
-  with restore/view, git capture, drift banner, duplicate/archive/delete+undo,
-  set active); `HandoffPreview` (debounced draft generation + token estimate);
-  structural `MarkdownView` (no raw-HTML sinks) with FTS highlight markers;
-  `SearchPanel` (query + type/status filters + highlighted snippets);
-  `SettingsDialog` (token budget, compact, startup checks); `ImportDialog`
-  (file picker or paste, JSON/Markdown detection).
-- Tests: `tests/ipc-routing.test.ts` (20 scenarios against real SQLite +
-  real git repos: CRUD, revisions, tags, search with markers, export/import
-  round trip, settings, secrets redaction, git capture + drift, active
-  handoff, duplicate/archive/delete/restore, error-code mapping,
-  INVALID_PAYLOAD/INVALID_CHANNEL); `tests/ipc-contract.test.ts` (preload vs
-  registry, renderer vs core parity). Updated preload allowlist test to assert
-  the full literal-channel set.
-- E2E: `tests/e2e/helpers.ts` (fresh data dir per launch), launch spec on
-  fresh DBs, new `workspace.spec.ts` - full flow (onboarding -> project ->
-  capsule -> live preview -> save -> search -> copy -> exports -> settings ->
-  import -> delete/undo) plus git capture -> commit -> drift banner, with
-  screenshots in `evidence/S3/`.
+- Core ships as built CJS dist (D15); migrations copied next to compiled main
+  (D16); `CONTEXTBRIDGE_DATA_DIR` isolation (D17); 33-channel Zod registry,
+  no generic invoke, contract tests (D18).
+- Full renderer: onboarding, workspace shell, CapsuleEditor (Simple/Advanced,
+  secret-scan confirm, exports, revisions, git capture, drift banner,
+  duplicate/archive/delete+undo, set active), HandoffPreview, SearchPanel,
+  SettingsDialog, ImportDialog, structural MarkdownView.
+- 169 unit tests (16 files), 5 e2e specs; packaged smoke.
 
-## Verification (raw output in `evidence/S3/`)
+## Completed work (S4)
+
+- **Active Handoff surfaced**: header chip (`active-handoff-chip`) jumps to
+  the active capsule; the active capsule is auto-selected when a project
+  opens and after it is set; badge refresh on delete (D20 related).
+- **Drift on open**: capsules with a git snapshot run the drift check
+  automatically when opened and show the banner without a click (D20).
+- **Delete confirmation**: in-app dialog (`confirm-delete`/`cancel-delete`)
+  replaces `window.confirm`; Undo toast unchanged (D20).
+- **Draft clobber fix**: draft loads once per capsule; save/copy/set-active
+  no longer discard unsaved edits; restore reloads explicitly (D21).
+- **Usability gate**: `tests/e2e/usability.spec.ts` proves first handoff in
+  6 interactions under 60 seconds (measured in-test) plus active-handoff
+  surfacing; screenshot `evidence/S4/active-chip.png`.
+- **Icon + installer**: `scripts/make-icon.mjs` (dependency-free PNG/ICO,
+  D19) → `win.icon`; NSIS installer target added
+  (`npm run package:installer` → `release/ContextBridge Setup 0.1.0.exe`);
+  packaged exe icon verified (`evidence/S4/exe-icon.png`).
+- **Formatting gate**: `.prettierrc.json` pinned to repo style
+  (singleQuote, printWidth 100, endOfLine auto) so `format:check` passes
+  under Windows `core.autocrlf=true` (D22).
+- **Docs refreshed**: `README.md` (status, features, commands),
+  `docs/ARCHITECTURE.md` (S0-S3 reality: IPC registry, build pipeline,
+  storage), `docs/SECURITY.md` (all controls now "implemented"),
+  `docs/DECISIONS.md` D19-D22.
+
+## Verification (raw output in `evidence/S4/`)
 
 | Command | Result | Evidence |
 | --- | --- | --- |
-| `npm run lint` | PASS | `lint.txt` |
+| `npm run lint` | PASS (0 warnings) | `lint.txt` |
 | `npm run typecheck` | PASS | `typecheck.txt` |
+| `npx prettier --check .` | PASS | `format-check.txt` |
 | `npm test` | PASS (169/169, 16 files) | `unit-tests.txt` |
-| `npm run test:e2e` | PASS (5/5: 3 launch + 2 workflow) | `e2e.txt` |
+| `npm run test:e2e` | PASS (6/6: 3 launch + 2 workflow + usability) | `e2e.txt` |
 | `npm run package:dir` | PASS (`win-unpacked/ContextBridge.exe`) | `package.txt` |
+| `npm run package:installer` | PASS (`ContextBridge Setup 0.1.0.exe`, 123 MB) | `package-installer.txt` |
 | `npm run smoke:packaged` | PASS (SQLite + FTS5 in package) | `smoke-packaged.txt` |
 
-Screenshots: `editor-live-preview.png`, `export-dialog.png`,
-`workspace-after-import.png`, `drift-banner.png`.
+Screenshots: `active-chip.png`, `exe-icon.png`, plus S3 workspace/editor/
+export/drift shots.
 
 ## Unverified work
 
-- Nothing in the S3 gate is unverified.
-- Known non-blocking warning (S0): Vite config loader warns that
-  `electron/csp.ts` uses ESM syntax in a file without `"type": "module"`.
-  Builds are unaffected.
+- Nothing in the S4 gate is unverified.
+- Known non-blocking warning: Vite config loader notes that `electron/csp.ts`
+  uses ESM syntax in a file without `"type": "module"`. Builds unaffected.
+- The NSIS installer builds and is signed by electron-builder's default
+  signtool flow, but is not code-signed with a trusted certificate (no
+  certificate available locally); Windows SmartScreen may warn on first run.
 
 ## Blockers
 
@@ -138,11 +108,9 @@ Screenshots: `editor-live-preview.png`, `export-dialog.png`,
 
 ## Next action
 
-- **S4 - polish and release**: import/export UX polish, secret-scan dialog
-  coverage, Active Handoff surfacing, drift banner on open, revisions UI
-  verification, delete confirmation/undo pass, packaging (icon as allowed),
-  README/docs refresh, full E2E + usability check (<=6 interactions to first
-  handoff, <=60 seconds).
+- S0-S4 of the master build prompt are complete. Future work (not required
+  by the prompt): real code-signing certificate, app auto-update (would need
+  an explicit network decision), localization, capsule templates.
 
 ## Exact verification commands
 
@@ -150,9 +118,11 @@ Screenshots: `editor-live-preview.png`, `export-dialog.png`,
 npm install
 npm run lint
 npm run typecheck
+npx prettier --check .
 npm test
 npm run test:e2e
 npm run build
 npm run package:dir
+npm run package:installer
 npm run smoke:packaged
 ```

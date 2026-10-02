@@ -150,7 +150,9 @@ describe('handoff generator', () => {
   it('includes the exact seven instructions for the next AI', () => {
     const output = generateHandoff(baseCapsule(), project, null);
     const instructions = output.split('## Instructions for the Next AI\n')[1];
-    expect(instructions).toContain('1. First inspect the actual repository and current Git status.');
+    expect(instructions).toContain(
+      '1. First inspect the actual repository and current Git status.',
+    );
     expect(instructions).toContain('2. Treat the repository as the source of truth.');
     expect(instructions).toContain(
       '3. Do not assume this handoff is fully current if the code contradicts it.',
@@ -170,9 +172,7 @@ describe('handoff generator', () => {
       drift: { hasDrift: true, currentHead: 'abcdef1' },
     });
     expect(output).toContain('- Drift warning:');
-    expect(output).toContain(
-      'This handoff was captured from an older repository state.',
-    );
+    expect(output).toContain('This handoff was captured from an older repository state.');
     expect(output).toContain('Inspect Git status before continuing.');
 
     const noDrift = generateHandoff(fullCapsule, project, null, {
@@ -184,7 +184,10 @@ describe('handoff generator', () => {
   it('marks working tree dirty when the snapshot says so', () => {
     const dirty = generateHandoff(
       baseCapsule({
-        gitSnapshot: { workingTreeClean: false, capturedAt: '2026-10-02T00:00:00.000Z' },
+        gitSnapshot: {
+          workingTreeClean: false,
+          capturedAt: '2026-10-02T00:00:00.000Z',
+        },
       }),
       project,
       null,
@@ -219,7 +222,11 @@ describe('handoff generator', () => {
 
   it('truncates oversized content in compact mode with explicit markers', () => {
     const big = 'lorem ipsum dolor sit amet '.repeat(2000);
-    const capsule = baseCapsule({ currentTask: big, completedWork: big, goal: big });
+    const capsule = baseCapsule({
+      currentTask: big,
+      completedWork: big,
+      goal: big,
+    });
     const output = generateHandoff(capsule, project, null, {
       compact: true,
       tokenBudget: 2000,

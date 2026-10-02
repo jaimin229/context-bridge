@@ -160,3 +160,49 @@ named methods (no `invoke(channel, ...)` passthrough) and
 `tests/ipc.test.ts` asserts that the set of literal channels in the preload
 exactly equals the registry - adding a channel without exposing it (or vice
 versa) fails the test.
+
+## D19 - 2026-10-02: App icon is generated locally, packaging ships an NSIS installer
+
+`scripts/make-icon.mjs` renders the ContextBridge icon (256x256 RGBA with
+4x supersampling) and writes both `apps/desktop/build/icon.png` and a
+PNG-in-ICO `icon.ico` using nothing but `node:zlib` - no downloaded assets,
+no image dependencies, fully deterministic. `electron-builder.yml` points
+`win.icon` at it, and packaging produces an unpacked build (`--dir`) plus a
+per-user NSIS installer (`ContextBridge Setup <version>.exe`, non-one-click,
+user-selectable directory). The packaged exe carries the icon (verified by
+extracting it from `win-unpacked/ContextBridge.exe` into
+`evidence/S4/exe-icon.png`).
+
+## D20 - 2026-10-02: Drift is checked automatically on open; destructive actions use in-app dialogs
+
+Opening a capsule that has a captured git snapshot (and a project with a
+repository path) runs the drift check once and shows the banner immediately -
+the user never has to press "Check drift" to learn the repo moved. Deleting a
+capsule now uses an in-app confirm dialog (testids `confirm-delete` /
+`cancel-delete`) instead of `window.confirm`, so the flow is styled,
+accessible, and deterministic under Playwright without native dialog
+handlers. Undo after delete is unchanged.
+
+## D21 - 2026-10-02: The editor draft loads once per capsule; explicit actions refresh it
+
+`CapsuleEditor` loads tags and the draft only when the capsule id first
+changes (`loadedFor` guard). Previously any same-id prop update - including
+the revision emitted by "Copy handoff" - rebuilt the draft from the database
+and silently discarded unsaved edits. Save, copy, archive, and set-active now
+leave local edits untouched; actions that intentionally change content
+(revision restore) reload the draft explicitly from the updated capsule.
+
+## D22 - 2026-10-02: Prettier tolerates Windows checkout line endings
+
+The repository Prettier config (`singleQuote: true`, `semi: true`,
+`printWidth: 100`, `trailingComma: "all"`) is unchanged; S4 adds one key:
+`endOfLine: "auto"`. The machine sets `core.autocrlf=true`, so files that git
+re-checks out are CRLF on disk while Prettier's default `lf` made
+`format:check` fail on 44 files. `"auto"` accepts each file's existing
+line-ending style instead of rewriting the working tree, so
+`npx prettier --check .` passes on Windows while commits stay normalized to
+LF in the repository. During S4 a default-config `prettier --write` was
+briefly run and re-quoted sources to double quotes, which broke the
+source-text contract tests (`tests/ipc.test.ts`, `tests/ipc-contract.test.ts`
+assert on literal single-quoted channel strings); restoring the repo config
+and re-running returned the suite to 169/169.

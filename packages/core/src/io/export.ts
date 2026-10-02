@@ -82,11 +82,7 @@ export function toJsonExportString(
   return `${JSON.stringify(toJsonExport(capsule, project, tags, exportedAt), null, 2)}\n`;
 }
 
-export function toMarkdownExport(
-  capsule: Capsule,
-  project: Project,
-  tags: Tag[],
-): string {
+export function toMarkdownExport(capsule: Capsule, project: Project, tags: Tag[]): string {
   const frontMatter = buildFrontMatter({
     contextbridge: 1,
     id: capsule.id,
@@ -99,8 +95,7 @@ export function toMarkdownExport(
     updated: capsule.updatedAt,
     git_head: capsule.gitHead,
     git_branch: capsule.gitBranch,
-    git_snapshot:
-      capsule.gitSnapshot === null ? undefined : JSON.stringify(capsule.gitSnapshot),
+    git_snapshot: capsule.gitSnapshot === null ? undefined : JSON.stringify(capsule.gitSnapshot),
   });
   return `${frontMatter}\n${capsule.contentMarkdown}`;
 }
