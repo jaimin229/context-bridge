@@ -1,0 +1,13 @@
+
+> contextbridge@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.3 C:/Users/jaimi/OneDrive/Desktop/context bridge
+
+
+ Test Files  14 passed (14)
+      Tests  144 passed (144)
+   Start at  09:13:22
+   Duration  3.42s (tests 51%, import 29%, transform 19%, worker 1%)
+

@@ -94,3 +94,29 @@ Every `.sql` file in the migrations directory must start with a number.
 Unnumbered names (e.g. `init.sql`) raise an error instead of being filtered
 out silently — a silently skipped migration is a data-integrity hazard. Files
 with other extensions are ignored (backups, notes).
+
+## D12 — 2026-10-02: Git access is allowlisted and content-blind
+
+Git capture runs a fixed set of literal `git` subcommands (`rev-parse`,
+`branch --show-current`, `status --porcelain=v1 -z`) via `execFile` without a
+shell. The repository path is only ever the `cwd`; no caller-supplied string
+can become an argument. Only file *names* and refs are read — never file
+contents — so capture cannot leak source code or secrets into capsules. Git
+failures map to a new `GIT_UNAVAILABLE` error code.
+
+## D13 — 2026-10-02: FTS5 queries are quoted, operators are literal
+
+Search never passes raw user text into FTS5 `MATCH`. Terms are parsed into
+words/phrases, each wrapped in double quotes (so `*`, `-`, `NEAR`, `OR`, `:`,
+`(` are plain text), joined with `AND`, with a prefix `*` on the final term
+for as-you-type search. Structured FTS syntax is therefore unreachable by
+user input; hostile queries degrade to literal searches instead of errors.
+Snippets use control-character markers (`\u0002`/`\u0003`) rather than HTML,
+so the renderer never needs `dangerouslySetInnerHTML`.
+
+## D14 — 2026-10-02: Secret findings are always redacted
+
+`scanSecrets` never returns the matched credential — only the rule id,
+position, and a masked prefix (`abcd…`). Rules are a fixed offline set of
+high-confidence formats; the scanner makes no network calls and never logs or
+stores raw matches. Tests use constructed, obviously fake strings.

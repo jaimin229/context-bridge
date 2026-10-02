@@ -124,3 +124,33 @@ export {
 } from './io/import';
 
 export { newId, nowIso, slugify } from './util';
+
+export {
+  captureGitSnapshot,
+  parsePorcelainStatus,
+} from './git/capture';
+
+export {
+  detectDrift,
+  type DriftReason,
+  type DriftReport,
+} from './git/drift';
+
+export {
+  SNIPPET_CLOSE,
+  SNIPPET_OPEN,
+  buildMatchQuery,
+  searchCapsules,
+  type SearchFilter,
+  type SearchHit,
+  type SearchOutcome,
+} from './search/search';
+
+export {
+  SECRET_RULES,
+  redactMatch,
+  scanSecrets,
+  type SecretFinding,
+  type SecretRule,
+  type SecretSeverity,
+} from './secrets/scan';

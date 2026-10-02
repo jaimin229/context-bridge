@@ -2,7 +2,7 @@
 
 ## Current slice
 
-**S1 — Core database and domain — GATE PASSED (2026-10-02)**
+**S2 — Repository intelligence and search — GATE PASSED (2026-10-02)**
 
 ## Completed work (S0, committed `f617eba`)
 
@@ -42,18 +42,40 @@
   `importNormalized`.
 - 95 unit/integration tests against real temporary SQLite databases (11 files).
 
-## Verification (raw output in `evidence/S1/`)
+## Completed work (S2)
+
+- Git capture (`captureGitSnapshot`): allowlisted `git` subcommands only
+  (no shell, no caller-supplied arguments, repository path is `cwd` only),
+  async `execFile` with 10s timeout and 8MB buffer. Captures repository root,
+  HEAD, branch/detached state, and staged/unstaged/untracked file names from
+  `git status --porcelain=v1 -z` (never file contents). Handles unborn HEAD,
+  nested subdirectories, and maps failures to VALIDATION/NOT_FOUND/
+  GIT_UNAVAILABLE (new error code, D12).
+- Porcelain `-z` parser (`parsePorcelainStatus`) with rename/copy handling.
+- Drift detection (`detectDrift`): head-changed, branch-changed,
+  working-tree-changed, repository-unavailable; order-insensitive file set
+  comparison; no baseline means no drift claim.
+- FTS5 search (`searchCapsules`): every user term quoted so operators are
+  literal (D13), phrase queries, prefix on final term, filters (project, type,
+  status, tags, archived, deleted), pagination with stable total, snippet
+  markers `\u0002`/`\u0003` with title fallback, VALIDATION for empty/over-long
+  queries. Hostile-query suite passes without data mutation.
+- Secret scanner (`scanSecrets`): 8 offline rules (private key blocks, AWS,
+  GitHub, Slack, JWT, URL credentials, credential assignments); findings are
+  redacted (D14) with line/column positions.
+
+## Verification (raw output in `evidence/S2/`)
 
 | Command | Result | Evidence |
 | --- | --- | --- |
 | `npm run lint` | PASS | `lint.txt` |
 | `npm run typecheck` | PASS | `typecheck.txt` |
-| `npm test` | PASS (95/95, 11 files) | `unit-tests.txt` |
+| `npm test` | PASS (144/144, 14 files) | `unit-tests.txt` |
 | `npm run test:e2e` | PASS (3/3 regression) | `e2e.txt` |
 
 ## Unverified work
 
-- Nothing in the S1 gate is unverified.
+- Nothing in the S2 gate is unverified.
 - Known non-blocking warning (S0): Vite config loader warns that
   `electron/csp.ts` uses ESM syntax in a file without `"type": "module"`.
   Builds are unaffected.
@@ -64,11 +86,10 @@
 
 ## Next action
 
-- **S2 — Repository intelligence and search**: Git allowlisted capture (status,
-  branch, HEAD, staged/unstaged/untracked, no binary contents), drift
-  detection against a captured snapshot, FTS5 search service (prefix and
-  phrase queries, hostile-input escaping, snippets, filters), and a
-  deterministic local secret scanner.
+- **S3 — Electron UI and workflows**: typed IPC for every repository/search/
+  git operation, onboarding flow, project workspace, Simple/Advanced capsule
+  editors with live handoff preview, copy buttons, search UI with snippet
+  highlighting, settings, and keyboard-accessible navigation.
 
 ## Exact verification commands
 

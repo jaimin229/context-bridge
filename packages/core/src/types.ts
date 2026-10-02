@@ -104,6 +104,7 @@ export type AppErrorCode =
   | 'VALIDATION'
   | 'CONFLICT'
   | 'INVALID_STATE'
+  | 'GIT_UNAVAILABLE'
   | 'INTERNAL';
 
 export interface AppError {
